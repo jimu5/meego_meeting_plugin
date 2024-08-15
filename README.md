@@ -1,0 +1,1 @@
+# meego_meeting_plugin
