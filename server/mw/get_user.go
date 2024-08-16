@@ -1,0 +1,29 @@
+package mw
+
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
+	"meego_meeting_plugin/common"
+	"meego_meeting_plugin/service"
+)
+
+type ReqHeaders struct {
+	MeegoUserKey string `json:"meego_user_key,omitempty"`
+}
+
+func GetUser(c *fiber.Ctx) error {
+	userKey := c.Get(common.MeegoUserKey)
+	if len(userKey) == 0 {
+		c.SendStatus(401)
+		return nil
+	}
+	c.Locals(common.MeegoUserKey, userKey)
+	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(c.Context(), userKey)
+	if err != nil {
+		log.Error(err)
+		c.SendStatus(401)
+		return nil
+	}
+	c.Locals(common.LarkUserAccessToken, userInfo.LarkUserAccessToken)
+	return c.Next()
+}
