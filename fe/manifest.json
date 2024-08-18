@@ -1,0 +1,80 @@
+{
+  "agent_info": {
+    "name": "会议管理",
+    "integrate_points": [
+      {
+        "key": "board_n57b",
+        "name": "会议管理",
+        "description": "会议管理",
+        "type": "DASHBOARD",
+        "icon": "",
+        "work_item_type": [
+          "_all"
+        ],
+        "scenes": []
+        
+      },
+      {
+        "type": "VIEW",
+        "key": "view_9w9z",
+        "name": "网格",
+        "description": "视图页功能",
+        "icon": "{\"color\":\"#B449C2\",\"type\":\"icon-openapp_view_chart\"}",
+        "work_item_type": [
+          "_all"
+        ],
+        "scenes": []
+      },
+      {
+        "type": "BUTTON",
+        "icon": "",
+        "work_item_type": [
+          "_all"
+        ],
+        "scenes": [
+          4
+        ],
+        "key": "button_demo",
+        "name": "链接按钮",
+        "description": "详情页节点按钮功能"
+      },
+      {
+        "type": "BUTTON",
+        "icon": "",
+        "work_item_type": [
+          "_all"
+        ],
+        "scenes": [
+          3
+        ],
+        "key": "button_id",
+        "name": "预览按钮",
+        "description": "详情页按钮功能"
+      },
+      {
+        "type": "CONTROL",
+        "icon": "",
+        "work_item_type": [
+          "_all"
+        ],
+        "scenes": [
+          1,
+          2,
+          6
+        ],
+        "key": "bind_schedule",
+        "name": "绑定日程",
+        "description": "绑定日程"
+      }
+    ]
+  },
+  "dependency": {
+    "useSafeFormikFieldState": {
+      "version": "0.0.0"
+    }
+  },
+  "domain": "https://project.feishu.cn",
+  "pluginID": "MII_657523FA3C428003",
+  "version": "0.0.1",
+  "pluginSecret": "131c5198c6207333a9135174d2c829dfb97773888ef00bea32e66195e16ce442614f609db0fac8ba1a6018f4328b1aaa"
+}
