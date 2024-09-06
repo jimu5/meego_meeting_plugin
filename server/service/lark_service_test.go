@@ -3,11 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"meego_meeting_plugin/service/lark_api"
 	"testing"
+
+	"meego_meeting_plugin/service/lark_api"
 )
 
-const TestUserToken = "u-fEnSq3wjRdJpPEjbG4xY2Z54mjD05kP9jww0hlY004VA"
+const TestUserToken = ""
 
 func TestLarkService(t *testing.T) {
 	larkService := NewLarkService()
@@ -20,7 +21,7 @@ func TestLarkService(t *testing.T) {
 	})
 
 	t.Run("GetMeetingRecordInfoByCalendar", func(t *testing.T) {
-		eventID := "aefedb6a-637d-4cc9-b877-ecea2fac505e_0"
+		eventID := ""
 		res, err := larkService.GetMeetingRecordInfoByCalendar(ctx, "", eventID, userToken)
 		fmt.Println(res, err)
 	})
@@ -32,7 +33,7 @@ func TestLarkService(t *testing.T) {
 	})
 
 	t.Run("GetUserAccessToken", func(t *testing.T) {
-		code := "bdbm88dc0ebf4ba093bea885d5002216"
+		code := ""
 		res, err := larkService.GetUserAccessToken(ctx, code)
 		fmt.Println(res, err)
 	})
