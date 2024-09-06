@@ -10,3 +10,6 @@
 /dataSources/
 /dataSources.local.xml
 .DS_Store
+
+meego_meeting_plugin
+plugin.db

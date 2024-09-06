@@ -87,6 +87,10 @@
 
 ![alt text](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/docs/img/server/5.png)
 
+### 从 docker 镜像启动服务
+
+TODO
+
 ### 从二进制文件运行服务端程序
 
 1. 下载或者从源码编译二进制文件
@@ -111,6 +115,11 @@
 | meego_plugin_secret | 飞书项目插件凭证 app_secret |
 
 3. 执行命令之后，如果没有意外的话，后端服务将运行在 7999 端口上
+
+如果正常启动, 你将会看到终端输出如下图所示的信息:
+![alt text](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/docs/img/server/6.png)
+
+并且在二进制文件的同级目录下生成一个`plugin.db`的数据库文件.
 
 > TODO: 后续会将支持自定义配置启动端口
 
