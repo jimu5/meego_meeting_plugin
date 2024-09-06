@@ -216,7 +216,7 @@ func (p PluginService) TryJoinChatBycBindFirstCalendar(ctx context.Context, proj
 	resp, err := Meego.MeegoAPI.Chat.BotJoinChat(ctx, meego_api.BotJoinChatParam{
 		ProjectKey:      projectKey,
 		WorkItemTypeKey: workItemTypeKey,
-		AppIDs:          []string{config.APPID},
+		AppIDs:          []string{config.LarkAppID},
 		WorkItemID:      workItemID,
 		MeegoUserKey:    meegoUserKey,
 	})

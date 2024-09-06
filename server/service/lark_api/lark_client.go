@@ -6,7 +6,7 @@ import (
 )
 
 var own_client = &LarkClient{
-	Client:    lark.NewClient(config.APPID, config.APPSECRET, lark.WithEnableTokenCache(true)),
-	appID:     config.APPID,
-	appSecret: config.APPSECRET,
+	Client:    lark.NewClient(config.LarkAppID, config.LarkAppSecret, lark.WithEnableTokenCache(true)),
+	appID:     config.LarkAppID,
+	appSecret: config.LarkAppSecret,
 }
