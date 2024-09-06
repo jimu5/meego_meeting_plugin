@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-var db = initDB()
+var db *gorm.DB
 
-func initDB() *gorm.DB {
+func InitDB() *gorm.DB {
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
