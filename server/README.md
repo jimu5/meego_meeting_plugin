@@ -130,10 +130,10 @@ git clone https://github.com/jimu5/meego_meeting_plugin.git
 
 3. 编译
 
-默认情况下会编译出 linux 平台的 amd64 程序，如果有特殊诉求，请将最后的 `make build-linux` 直接改成 go 编译指令。
+默认情况下会编译出当前平台程序, 如有其他诉求, 自行修改 `go build` 指令
 
 ```
-cd server && go mod tidy && make build-linux
+cd server && go mod tidy && go build -ldflags="-s -w" -o meego_meeting_plugin .
 ```
 
 上面命令执行完毕之后, 编译产物会出现在 `./server/` 目录下, 文件名是`meego_meeting_plugin`
