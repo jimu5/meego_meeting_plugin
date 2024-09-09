@@ -10,6 +10,7 @@
 ![alt text](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/docs/img/2.png)
 
 ## 整体解决方案
+
 ![alt text](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/docs/img/3.png)
 
 ## 功能说明
@@ -42,7 +43,13 @@ TODO
 ## 目录说明
 
 ### server
+
 plugin 服务端文件
 
 ### fe
+
 plugin 前端文件
+
+## 部署说明
+
+详见 server 和 fe 文件夹下的 README
