@@ -147,3 +147,15 @@ cd server && go mod tidy && go build -ldflags="-s -w" -o meego_meeting_plugin .
 
 上面命令执行完毕之后, 编译产物会出现在 `./server/` 目录下, 文件名是`meego_meeting_plugin`
 
+## 后续规划
+
+**功能使用上**
+
+TODO
+
+**技术优化**
+
+1. 使用上支持配置文件方式启动
+2. 支持多种 DB 源作为存储
+3. 监听飞书回调事件优化
+4. ...
