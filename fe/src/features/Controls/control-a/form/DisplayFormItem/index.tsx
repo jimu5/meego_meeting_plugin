@@ -1,22 +1,56 @@
-import React from 'react';
-import { Progress } from '@douyinfe/semi-ui';
+import React, { useEffect } from 'react';
 import { IControlFormItemProps } from '../../../../../constants/type';
-// import { useSafeFormikFieldState } from 'useSafeFormikFieldState';
-
+import BindSchedule from '../components/BindSchedule';
 import './index.less';
+import ScheduleTable from '../components/ScheduleTable';
+import sdk, { withJSSDKReady } from '../../../SDKHoc';
+import { useAppContext } from '../hooks/useAppContext';
+import { useCalendarStore } from '../calendarStore';
+import { PLUGIN_ID } from '../../../../../constants';
 
-const DisplayFormItem = (props: IControlFormItemProps) => {
+const DisplayFormItem = (props: IControlFormItemProps & {SDKReady: boolean}) => {
   // const [field] = useSafeFormikFieldState('field_id');
-
-  if (props.mode === 'configure') {
-    return '配置页不支持展示';
-  }
+  const disabled = props?.mode === 'configure';
+  const appContext  = useAppContext(props?.SDKReady);
+  const store = useCalendarStore();
+  // useEffect(() => {
+  //   const authInit = async () => {
+  //     const code = await getAuthCode();
+  //     const token = await getToken();
+  //     getUserPluginToken(token, code).then((res) => {
+  //       // TODO: 使用user plugin token 做一系列的鉴权操作
+  //       console.log(res, 'res------')
+  //     })
+  //   }
+  //   authInit();
+  // }, []);
+  useEffect(() => {
+    const workItemId = appContext?.activeWorkItem?.id ?? 0;
+    const workItemTypeKey = appContext?.activeWorkItem?.workObjectId ?? '';
+    const projectId = appContext?.mainSpace?.id ?? '';
+    const userId = appContext?.loginUser?.id ?? '';
+    if(userId) {
+      sdk.storage.setItem(`${PLUGIN_ID}_user_id`, userId);
+    }
+    if(appContext?.activeWorkItem?.id) {
+      store.init({
+        workItemId,
+        workItemTypeKey,
+        projectId,
+        userId,
+      });
+    }
+    return () => {
+      store.reset();
+    }
+  }, [appContext?.activeWorkItem?.id, appContext?.activeWorkItem?.workObjectId, appContext?.mainSpace?.id, appContext?.loginUser?.id]);
 
   return (
-    <div className="from_progress" onClick={() => props.markEditing(true)}>
-      <Progress percent={props.value} showInfo={true} />
+    <div className="from_progress" >
+      <BindSchedule SDKReady={props?.SDKReady} disabled={disabled} />
+      <ScheduleTable SDKReady={props?.SDKReady} disabled={disabled} />
     </div>
   );
 };
 
-export default DisplayFormItem;
+export default withJSSDKReady(DisplayFormItem);

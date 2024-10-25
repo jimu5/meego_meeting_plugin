@@ -1,5 +1,5 @@
-import SDKClient, { SDKClientOptions } from '@lark-project/js-sdk';
-import { PLUGIN_ID } from '../constants';
+import SDKClient, { SDKClientOptions } from "@lark-project/js-sdk";
+import { PLUGIN_ID } from "../constants";
 
 class SDKManager {
   configured: boolean;
@@ -18,7 +18,7 @@ class SDKManager {
       await this.sdk.config(this.options);
       this.configured = true;
     } catch (error) {
-      console.error('SDK 调用失败', error);
+      console.error("SDK 调用失败", error);
     }
     return this.sdk;
   };
@@ -26,5 +26,5 @@ class SDKManager {
 
 export const sdkManager = new SDKManager({
   pluginId: PLUGIN_ID,
-  isDebug: false,
+  isDebug: true,
 });

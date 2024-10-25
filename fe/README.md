@@ -1,32 +1,28 @@
-# Overview
-This is an example of the Feishu Project Plug-in. The internal code demonstrates the following:
+# 概述
 
-- How to get and display data from js-sdk
+这个是米格会议插件的前端工程文件
 
-- Basic usage examples of each feature, including Board, Button, Config, Control, Dashboard and View
+## 调试项目
 
-- Plug-in configuration information
+1. 在项目目录下运行：`npm start`
+2. 然后访问「飞书项目·开发者后台」首页，在页面左下角启用插件的本地调试模式。
+3. 最后打开「飞书项目」，预览插件的效果。
 
-You can find more information in our Quick Start Guide
+## 发布你的插件
 
-## Startup the project
-1. In the project directory, run: `npm start`.
+### 修改配置
 
-2. Then visit the home page of "Feishu Project · Developer Platform" and enable the local debug mode of the plug-in in the bottom left corner of the page.
+1. 修改 manifest.json 文件中 `pluginID` 和 `pluginSecret` 配置
+2. 修改 `src/constants/index.ts`文件中的 `PLUGIN_ID`和 `PLUGIN_SECRET`配置
+3. 修改文件 ` fe/src/models/api/index.ts` 中的 `CUSTOM_API_PREFIX `和 `REDRECT_URL`配置
 
-3. Finally, open "Feishu Project" and preview the effect of the plug-in.
 
-## Publish your plug-in
-1. Run the `npm run release` command in the terminal to build the product and upload it.
+### 发布产物
 
-2. Open the corresponding plug-in details page in the "Feishu Project · Developer Platform".
-
-3. Navigate to the "Features" tab on the left side, add corresponding features, and complete the configuration.
-
-4. Navigate to the "Plug-in Release" tab on the left side.
-
-5. Click `New version` to fill in the relevant information, select the corresponding version of product in `Js version` and submit.
-
-6. Back to the "Plug-in Release" page, a new version record will appear, click the "Release" button of this record.
-
-7. Congratulations, you have now successfully released a plug-in, you can go back to the "Feishu Project" plug-in marketplace to install and enjoy using it!
+1. 在终端上运行 `npm run release` 命令来构建产物并上传。
+5. 打开「飞书项目·开发者后台」相应插件详情页。
+6. 左侧导航切换到「插件功能」tab，添加对应功能构成并完善配置。
+7. 左侧导航切换到「插件发布」tab。
+8. 点击「创建版本」填写相关信息，在「产物版本』中选择对应版本产物并提交。
+9. 回到「插件发布」页面，会出现一条新增的版本记录，点击该记录的「申请发布」按钮。
+10. 恭喜，你现在已经成功发布了一个插件，可以回到「飞书项目」插件市场去安装并尽情使用啦！

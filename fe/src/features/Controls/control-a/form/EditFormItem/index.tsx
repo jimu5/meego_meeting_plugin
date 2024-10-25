@@ -1,22 +1,17 @@
 import React, { useState } from 'react';
-import { Slider } from '@douyinfe/semi-ui';
+import { Slider, Table } from '@douyinfe/semi-ui';
 import { IControlFormItemProps } from '../../../../../constants/type';
+import { columns, mockData } from '../constants';
+import './index.less';
 
 const EditFormItem = (props: IControlFormItemProps) => {
   const [value, setValue] = useState(props.value);
 
   return (
-    <Slider
-      value={value}
-      onChange={setValue}
-      min={0}
-      max={100}
-      step={1}
-      onAfterChange={async nextValue => {
-        await props.onChange(nextValue);
-        props.markEditing(false);
-      }}
-    ></Slider>
+    <div className='container'>
+      {/* <BindSchedule /> */}
+      <Table columns={columns} dataSource={mockData} pagination={false} />
+    </div>
   );
 };
 

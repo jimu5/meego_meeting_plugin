@@ -1,7 +1,6 @@
-import { FieldMetaModel } from '@lark-project/BasePlugin';
-import { SchemaValueType } from '../../../../constants/type';
-import { CONTROL_KEY, CONTROL_NAME } from '../constants';
-import FieldConfigDescriptor from './FieldConfigDescriptor';
+import { FieldMetaModel } from "@lark-project/BasePlugin";
+import { SchemaValueType } from "../../../../constants/type";
+import { CONTROL_KEY, CONTROL_NAME } from "../constants";
 
 export default class CustomFieldMetaModel extends FieldMetaModel {
   meta = {
@@ -12,7 +11,7 @@ export default class CustomFieldMetaModel extends FieldMetaModel {
     // 控件值基础类型，如控件数据不存储在 Meegle 则不需要关心
     valueType: SchemaValueType.STRING,
     // 控件的描述，在表单项控件信息面板会被展示
-    description: '',
+    description: "",
   };
   defaultField = {
     // 与开发者后台的控件标识保持一致，作为控件的唯一标记
@@ -22,12 +21,12 @@ export default class CustomFieldMetaModel extends FieldMetaModel {
     // 为 true 则不显示 Label，包含 tooltip
     noLabel: false,
     // Label 上更多信息的 tooltip
-    tooltip: '',
+    tooltip: "",
   };
 
   validateField = async (value: any): Promise<undefined | string> => {
     return undefined;
   };
 
-  fieldConfigDescriptor = new FieldConfigDescriptor();
+  // fieldConfigDescriptor = new FieldConfigDescriptor();
 }

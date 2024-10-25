@@ -2,11 +2,11 @@
   "compilerOptions": {
     "module": "esnext",
     "target": "es5",
-    "lib": [
-      "es6",
-      "dom",
-      "es7"
-    ],
+    "lib": ["es6", "dom", "es7"],
+    "baseUrl": ".", // 这里要设为项目的根目录
+    "paths": {
+      "@/*": ["src/*"] // 此处配置别名，@ 指向 src 目录
+    },
     "sourceMap": true,
     "allowJs": true,
     "experimentalDecorators": true,
@@ -25,12 +25,6 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "src",
-    "global.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "output"
-  ]
+  "include": ["src", "global.d.ts"],
+  "exclude": ["node_modules", "output"]
 }
