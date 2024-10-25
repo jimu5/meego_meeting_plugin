@@ -1,5 +1,5 @@
-export const PLUGIN_ID = "MII_6578456341940003";
-export const PLUGIN_SECRET = "067C127A99B8F7BF77517B0056F17C8D";
+export const PLUGIN_ID = "your-plugin-id";
+export const PLUGIN_SECRET = "your-plugin-secret";
 
 export const WEEK_ARR = [
   "周一",
