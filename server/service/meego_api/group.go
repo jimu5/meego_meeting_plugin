@@ -32,6 +32,7 @@ func (g ChatAPI) BotJoinChat(ctx context.Context, param BotJoinChatParam) (*chat
 		WorkItemID(param.WorkItemID).
 		AppIDs(param.AppIDs).Build()
 	resp, err := g.client.Chat.BotJoinChat(ctx, req, core.WithUserKey(param.MeegoUserKey))
+
 	if err != nil {
 		log.Error(err)
 		return nil, err

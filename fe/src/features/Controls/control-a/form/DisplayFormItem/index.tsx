@@ -3,15 +3,21 @@ import { IControlFormItemProps } from '../../../../../constants/type';
 import BindSchedule from '../components/BindSchedule';
 import './index.less';
 import ScheduleTable from '../components/ScheduleTable';
-import sdk, { withJSSDKReady } from '../../../SDKHoc';
-import { useAppContext } from '../hooks/useAppContext';
 import { useCalendarStore } from '../calendarStore';
-import { PLUGIN_ID } from '../../../../../constants';
+
+import { sdkManager } from '../../../../../utils';
 
 const DisplayFormItem = (props: IControlFormItemProps & {SDKReady: boolean}) => {
+  const [appContext, setContext] = React.useState({});
   // const [field] = useSafeFormikFieldState('field_id');
-  const disabled = props?.mode === 'configure';
-  const appContext  = useAppContext(props?.SDKReady);
+  // const disabled = props?.mode === 'configure';
+  const disabled = false;
+  const getContext = async () => {
+    try {
+      const context = await window.JSSDK.Context.load();
+      setContext(context);
+    } catch (e) {}
+  };
   const store = useCalendarStore();
   // useEffect(() => {
   //   const authInit = async () => {
@@ -25,12 +31,15 @@ const DisplayFormItem = (props: IControlFormItemProps & {SDKReady: boolean}) => 
   //   authInit();
   // }, []);
   useEffect(() => {
+    getContext()
     const workItemId = appContext?.activeWorkItem?.id ?? 0;
     const workItemTypeKey = appContext?.activeWorkItem?.workObjectId ?? '';
     const projectId = appContext?.mainSpace?.id ?? '';
     const userId = appContext?.loginUser?.id ?? '';
     if(userId) {
-      sdk.storage.setItem(`${PLUGIN_ID}_user_id`, userId);
+      sdkManager.getSdkInstance().then((res) => {
+        res?.storage?.setItem(`user_id`, userId);
+      });
     }
     if(appContext?.activeWorkItem?.id) {
       store.init({
@@ -53,4 +62,5 @@ const DisplayFormItem = (props: IControlFormItemProps & {SDKReady: boolean}) => 
   );
 };
 
-export default withJSSDKReady(DisplayFormItem);
+// export default withJSSDKReady(DisplayFormItem);
+export default DisplayFormItem;

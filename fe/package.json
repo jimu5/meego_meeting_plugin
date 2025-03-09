@@ -3,14 +3,14 @@
   "version": "0.0.1",
   "dependencies": {
     "@douyinfe/semi-ui": "2.25.4",
-    "@lark-project/js-sdk": "^0.1.6",
+    "@lark-project/js-sdk": "^2.0.5",
     "axios": "^0.21.1",
     "classnames": "^2.3.2",
     "js-base64": "^3.7.5",
     "lodash-es": "^4.17.21",
     "moment": "^2.29.4",
-    "react": "^17.0.0",
-    "react-dom": "^17.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-router": "^5.0.1",
     "react-router-dom": "^5.0.1",
     "typescript": "^4.3.2",
@@ -18,7 +18,8 @@
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",
-    "@types/react": "^17.0.6",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "eslint": "^8.56.0",
@@ -36,8 +37,18 @@
     "build": "lpm build",
     "release": "lpm release"
   },
-  "browserslist": [
-    "> 1%",
-    "last 4 versions"
-  ]
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "license": "UNLICENSED",
+  "private": true
 }

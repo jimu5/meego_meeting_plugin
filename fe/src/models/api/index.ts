@@ -1,16 +1,16 @@
 import axios from "axios";
 import { encode } from "js-base64";
-import { PLUGIN_ID, PLUGIN_SECRET } from "../../constants";
+// import { PLUGIN_ID, PLUGIN_SECRET } from "../../constants";
 import {
   AuthRes,
   AutoBindMeetingsParams,
   BindCalendarParams,
   BindMeetingsParams,
   BindMeetingsParamsRes,
-  GetAuthCodeRes,
+  // GetAuthCodeRes,
   GetAutoBindMeetingsStatus,
   GetAutoBindMeetingsStatusRes,
-  GetTokenAuthRes,
+  // GetTokenAuthRes,
   ResWrapper,
   SearchCalendarParams,
   SearchCalendarRes,
@@ -34,12 +34,12 @@ const REDRECT_URL =
   "https://yourhost.com/api/v1/meego/lark/auth";
 
 // 飞书的APP_ID
-const FEISHU_APP_ID = "cli_a5f2a12c04bc9013";
+const FEISHU_APP_ID = "your_feishu_app_id";
 
 export const getFeishuAuthHandler = () => {
   sdkManager.getSdkInstance().then((res) => {
     const state = document.URL;
-    res?.storage?.getItem(`${PLUGIN_ID}_user_id`).then((_res) => {
+    res?.storage?.getItem(`user_id`).then((_res) => {
       const meegoUserId = _res;
       const encodedState = encode(`${state}&meego_user_key=${meegoUserId}`);
       const openUrl = `${FEISHU_AUTH_URL}?redirect_uri=${encodeURI(
@@ -88,48 +88,48 @@ export function authAgree(code: string) {
     .then((res) => res.data);
 }
 
-/**
- * 获取authcode
- * @returns
- */
-export function getAuthCode() {
-  return axios
-    .post<ResWrapper<GetAuthCodeRes>>(
-      `${API_PREFIX}/open_api/authen/auth_code`,
-      {
-        plugin_id: PLUGIN_ID,
-        state: "111",
-      }
-    )
-    .then((res) => {
-      const authCode = res?.data?.data?.code;
-      return authCode;
-    });
-}
+// /**
+//  * 获取authcode
+//  * @returns
+//  */
+// export function getAuthCode() {
+//   return axios
+//     .post<ResWrapper<GetAuthCodeRes>>(
+//       `${API_PREFIX}/open_api/authen/auth_code`,
+//       {
+//         plugin_id: PLUGIN_ID,
+//         state: "111",
+//       }
+//     )
+//     .then((res) => {
+//       const authCode = res?.data?.data?.code;
+//       return authCode;
+//     });
+// }
 
-/**
- * 获取token
- * @returns
- */
-export function getToken() {
-  return axios
-    .post<ResWrapper<GetTokenAuthRes>>(
-      `${API_PREFIX}/open_api/authen/plugin_token`,
-      {
-        plugin_id: PLUGIN_ID,
-        plugin_secret: PLUGIN_SECRET,
-        type: 0,
-      }
-    )
-    .then((res) => {
-      const { expire_time, token } = res.data?.data ?? {};
-      console.log(res.data, "res.data?------");
-      // TODO: 这里需要记录token的有效期，每次调用接口前如果过期需要重新请求
-      // window.localStorage.setItem(`${PLUGIN_ID}_token`, token);
-      // window.localStorage.setItem(`${PLUGIN_ID}_expire_time`, expire_time + "");
-      return res.data?.data?.token;
-    });
-}
+// /**
+//  * 获取token
+//  * @returns
+//  */
+// export function getToken() {
+//   return axios
+//     .post<ResWrapper<GetTokenAuthRes>>(
+//       `${API_PREFIX}/open_api/authen/plugin_token`,
+//       {
+//         plugin_id: PLUGIN_ID,
+//         plugin_secret: PLUGIN_SECRET,
+//         type: 0,
+//       }
+//     )
+//     .then((res) => {
+//       const { expire_time, token } = res.data?.data ?? {};
+//       console.log(res.data, "res.data?------");
+//       // TODO: 这里需要记录token的有效期，每次调用接口前如果过期需要重新请求
+//       // window.localStorage.setItem(`${PLUGIN_ID}_token`, token);
+//       // window.localStorage.setItem(`${PLUGIN_ID}_expire_time`, expire_time + "");
+//       return res.data?.data?.token;
+//     });
+// }
 
 /**
  * 用plugin token获取user plugin token

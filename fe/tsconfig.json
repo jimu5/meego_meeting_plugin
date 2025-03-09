@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "target": "es5",
+    "target": "es6",
     "lib": ["es6", "dom", "es7"],
     "baseUrl": ".", // 这里要设为项目的根目录
     "paths": {

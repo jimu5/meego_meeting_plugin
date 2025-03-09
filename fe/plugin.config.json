@@ -1,0 +1,11 @@
+{
+    "siteDomain": "https://project.feishu.cn",
+    "pluginId": "",
+    "pluginSecret": "",
+    "resources": [
+        {
+            "id": "meeting_manage",
+            "entry": "./src/features/Controls/control-a/index.tsx"
+        }
+    ]
+}

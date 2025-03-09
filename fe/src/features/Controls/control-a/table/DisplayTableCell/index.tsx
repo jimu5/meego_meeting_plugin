@@ -1,6 +1,10 @@
 import React from 'react';
-import { Fragment } from '@lark-project/Pingere';
+// import { Fragment } from '@lark-project/Pingere';
 import { IControlTableCellProps } from '../../../../../constants/type';
+
+declare const Fragment: import('react').ForwardRefExoticComponent<
+  PingereWidgetInterface & import('react').RefAttributes<unknown>
+>;
 
 const containerStyles = {
   display: 'flex',

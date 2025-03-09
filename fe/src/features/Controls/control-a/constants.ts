@@ -1,5 +1,3 @@
-import { PLUGIN_ID } from "../../../constants";
-
 /**
  * 控件的唯一标记
  * 1. 与开发者后台的控件 Key 保持一致

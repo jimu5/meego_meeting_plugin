@@ -2,7 +2,7 @@ import { FieldMetaModel } from "@lark-project/BasePlugin";
 import { SchemaValueType } from "../../../../constants/type";
 import { CONTROL_KEY, CONTROL_NAME } from "../constants";
 
-export default class CustomFieldMetaModel extends FieldMetaModel {
+export default class CustomFieldMetaModel  {
   meta = {
     // 控件名称，表单项/列资源库显示这个
     label: CONTROL_NAME,

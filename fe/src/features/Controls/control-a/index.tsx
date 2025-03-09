@@ -15,8 +15,10 @@ export default async function main() {
   document.body.appendChild(container);
   const root = createRoot(container);
 
+
   root.render(
-    <Suspense fallback={<div></div>}>
+    <Suspense fallback={<div>loading...</div>}>
+      {/* TODO: parent 样式有一些问题 */}
       <App />
     </Suspense>
   );
