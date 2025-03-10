@@ -1,3 +1,11 @@
+import type { SDKClient } from '@lark-project/js-sdk';
+
+declare global {
+  interface Window {
+    JSSDK: SDKClient;
+  }
+}
+
 // static resource
 declare module '*.png';
 declare module '*.jpg';
