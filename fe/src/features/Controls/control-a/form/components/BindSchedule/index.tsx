@@ -175,8 +175,10 @@ const BindSchedule = ({ disabled, SDKReady }: IBindSchedule) => {
       work_item_type_key: store?.workItemTypeKey,
       project_key: store?.projectId
     }, store.userId).then(res => {
-      setEnbale(_enable)
-    }).catch(err => {});
+      setEnbale(_enable);
+    }).catch(err => {
+      console.error('auto bind err', err);
+    });
   }
   return (
     <div className="selection" >

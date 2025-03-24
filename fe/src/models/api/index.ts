@@ -45,7 +45,7 @@ export const getFeishuAuthHandler = () => {
       const openUrl = `${FEISHU_AUTH_URL}?redirect_uri=${encodeURI(
         REDRECT_URL
       )}&app_id=${FEISHU_APP_ID}&state=${encodedState}`;
-      res?.navigation?.open(openUrl);
+      window.location.href = openUrl;
     });
   });
 };
@@ -58,7 +58,9 @@ axios.interceptors.request.use(
 );
 axios.interceptors.response.use(
   function (response) {
-    response.data.statusCode = response.data?.status_code;
+    if (response?.data.Length >0) {
+      response.data.statusCode = response?.data?.status_code;
+    }
     delete response.data?.status_code;
     return response;
   },

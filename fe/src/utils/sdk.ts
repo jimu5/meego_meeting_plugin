@@ -7,7 +7,7 @@ class SDKManager {
   sdk: SDKClient;
   constructor(options: SDKClientOptions) {
     this.options = options;
-    this.sdk = new SDKClient();
+    this.sdk = window.JSSDK;
   }
 
   getSdkInstance = async (): Promise<SDKClient> => {
@@ -15,7 +15,7 @@ class SDKManager {
       return this.sdk;
     }
     try {
-      await this.sdk.config(this.options);
+      await this.sdk;
       this.configured = true;
     } catch (error) {
       console.error("SDK 调用失败", error);

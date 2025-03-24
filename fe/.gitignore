@@ -11,3 +11,7 @@ yarn-error.log*
 lpm.**.log
 
 .DS_Store
+
+.lpm-cache
+plugin.config.json
+dist
