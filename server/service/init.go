@@ -13,4 +13,5 @@ func InitClient() {
 	meego_api.API = meego_api.NewMeegoAPI()
 
 	Lark = NewLarkService()
+	Meego = NewMeegoService()
 }
