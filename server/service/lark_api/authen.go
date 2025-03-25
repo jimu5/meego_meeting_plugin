@@ -3,6 +3,7 @@ package lark_api
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/larksuite/oapi-sdk-go/v3/core"
 	"github.com/larksuite/oapi-sdk-go/v3/service/auth/v3"
@@ -30,6 +31,10 @@ func (a AuthenAPI) GetUserAccessToken(ctx context.Context, appAccessToken, authC
 	if err != nil {
 		log.Error(err)
 		return nil, err
+	}
+	if resp.Data == nil {
+		log.Error("err login resp empty")
+		return nil, ErrResponseNotSuccess
 	}
 	if !resp.Success() {
 		log.Error(resp.Code, resp.Msg, resp.RequestId())

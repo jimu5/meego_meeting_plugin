@@ -1,20 +1,25 @@
 package meego_api
 
 import (
-	sdk "github.com/larksuite/project-oapi-sdk-golang"
-	"github.com/larksuite/project-oapi-sdk-golang/core"
-	"meego_meeting_plugin/config"
 	"net/http"
 	"time"
+
+	"meego_meeting_plugin/config"
+
+	sdk "github.com/larksuite/project-oapi-sdk-golang"
+	"github.com/larksuite/project-oapi-sdk-golang/core"
 )
 
-var own_client = initOwnClient()
+var own_client *sdk.Client
 
-func initOwnClient() *sdk.Client {
+func InitOwnClient() *sdk.Client {
 	c := sdk.NewClient(config.MeegoPluginID, config.MeegoPluginSecret, sdk.WithLogLevel(core.LogLevelDebug),
 		sdk.WithReqTimeout(3*time.Second),
 		sdk.WithEnableTokenCache(true),
 		sdk.WithHttpClient(http.DefaultClient),
 	)
+
+	own_client = c
+
 	return c
 }

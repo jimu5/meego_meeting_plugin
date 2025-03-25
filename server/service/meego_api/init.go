@@ -1,3 +1,3 @@
 package meego_api
 
-var API = NewMeegoAPI()
+var API MeegoAPI

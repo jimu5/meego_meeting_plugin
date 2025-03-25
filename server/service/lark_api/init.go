@@ -1,3 +1,3 @@
 package lark_api
 
-var API = NewLarkAPI()
+var API LarkAPI
