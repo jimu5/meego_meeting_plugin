@@ -4,6 +4,7 @@ import { Typography, Image } from '@douyinfe/semi-ui';
 import { LinkType} from '../../../../../../models/types'
 import icon_file_lark from '../../../../../../assets/icon_file_lark.svg'
 import './index.less';
+import { sdkManager } from '../../../../../../utils';
 
 interface ILinkRender {
   link: string;
@@ -21,11 +22,18 @@ const LinkRender = ({ link, type }: ILinkRender) => {
     ),
     [LinkType.DOC]: <IconLink className='link-icon' />
   }), [type]);
+
+  const onClick = () => {
+    sdkManager.getSdkInstance().then((sdk) => {
+      sdk?.navigation?.open(link);
+    });
+  }
+
   // TODO: 根据type显示不同的icon
   return link ? (
-    <Typography.Text className='link-container' link={{ href: link, target: '_blank' }}>
+    <Typography.Text className='link-container' link={{}}>
       {iconMap[type]}
-      <span className='link-text'>查看</span>
+      <span className='link-text' onClick={onClick}>查看</span>
     </Typography.Text>
     ): <span>-</span>;;
 };

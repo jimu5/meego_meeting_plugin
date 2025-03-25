@@ -11,6 +11,7 @@ import { useCalendarStore } from '../../calendarStore';
 import { getBindMeetings } from '../../../../../../models/api';
 import UserProfileComp from '../UserProfile';
 import { mockData } from '../../constants';
+import { sdkManager } from '../../../../../../utils';
 interface IScheduleTable {
   disabled: boolean;
   SDKReady: boolean;
@@ -30,8 +31,15 @@ const ScheduleTable = ({ disabled, SDKReady }: IScheduleTable) => {
       ellipsis: true,
       fixed: true,
       render: (text, record: WorkItemMeeting, index) => {
+        const onclick = () => {
+          sdkManager.getSdkInstance().then((sdk) => {
+            sdk?.navigation?.open(record.calendar_event_app_link);
+          })
+        }
         return (
-            <TextRender link={record.calendar_event_app_link} text={text} />
+          <div onClick={onclick}>
+            <TextRender text={text} link="null"/>
+          </div>
         );
       },
     },
