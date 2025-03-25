@@ -3,17 +3,19 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/fiber/v2/log"
-	larkcalendar "github.com/larksuite/oapi-sdk-go/v3/service/calendar/v4"
-	larkvc "github.com/larksuite/oapi-sdk-go/v3/service/vc/v1"
-	"meego_meeting_plugin/service/lark_api"
-	"meego_meeting_plugin/util"
 	"strconv"
 	"sync"
 	"time"
+
+	"meego_meeting_plugin/service/lark_api"
+	"meego_meeting_plugin/util"
+
+	"github.com/gofiber/fiber/v2/log"
+	larkcalendar "github.com/larksuite/oapi-sdk-go/v3/service/calendar/v4"
+	larkvc "github.com/larksuite/oapi-sdk-go/v3/service/vc/v1"
 )
 
-var Lark = NewLarkService()
+var Lark LarkService
 
 // accessToken 应该从 ctx 中拿到, 不从参数里面取
 type LarkService struct {
