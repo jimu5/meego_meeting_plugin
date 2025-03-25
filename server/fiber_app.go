@@ -15,7 +15,7 @@ func NewFiberAPP() *fiber.App {
 		ProxyHeader: "X-Real-IP",
 	})
 	app.Use(logger.New())
-	app.Use(recover.New())
+	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
 	app.Use(cors.New())
 
 	app.Get("/status", monitor.New())

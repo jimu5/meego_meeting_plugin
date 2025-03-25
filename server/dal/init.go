@@ -1,13 +1,15 @@
 package dal
 
 import (
+	"log"
+	"os"
+	"time"
+
+	"meego_meeting_plugin/model"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log"
-	"meego_meeting_plugin/model"
-	"os"
-	"time"
 )
 
 var db *gorm.DB
@@ -34,5 +36,6 @@ func InitDB() *gorm.DB {
 	b.AutoMigrate(&model.User{})
 	b.AutoMigrate(&model.VCMeetingUnBind{})
 	b.AutoMigrate(&model.JoinChatRecord{})
+	db = b
 	return b
 }
