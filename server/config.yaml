@@ -1,0 +1,14 @@
+database:
+  type: sqlite  # sqlite, mysql, tidb, postgresql, sqlserver
+  host: 127.0.0.1
+  port: 3306
+  user: admin
+  password: 123456
+  db_name: plugin
+app_config:
+  # 飞书开放平台配置
+  lark_app_id: lark_app_id
+  lark_app_secret: lark_app_secret
+  # Meego 开放平台配置
+  meego_plugin_id: meego_plugin_id
+  meego_plugin_secret: meego_plugin_secret

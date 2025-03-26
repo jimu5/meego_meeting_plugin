@@ -4,18 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/avast/retry-go"
-	"github.com/gofiber/fiber/v2/log"
-	"github.com/larksuite/project-oapi-sdk-golang/service/user"
-	"github.com/samber/lo"
-	"gorm.io/gorm"
+	"sync"
+	"time"
+
 	"meego_meeting_plugin/config"
 	"meego_meeting_plugin/dal"
 	"meego_meeting_plugin/model"
 	"meego_meeting_plugin/service/lark_api"
 	"meego_meeting_plugin/service/meego_api"
-	"sync"
-	"time"
+
+	"github.com/avast/retry-go"
+	"github.com/gofiber/fiber/v2/log"
+	"github.com/larksuite/project-oapi-sdk-golang/service/user"
+	"github.com/samber/lo"
+	"gorm.io/gorm"
 )
 
 var Plugin = NewPluginService()
@@ -80,7 +82,10 @@ func (p PluginService) BindCalendar(ctx context.Context, param BindCalendarParam
 	}
 	// p.TryJoinChatBycBindFirstCalendar(ctx, param.ProjectKey, param.WorkItemTypeKey, param.WorkItemID, operator)
 	go func() {
-		p.RetryRefreshMeetingRecordTask(ctx, meetingsIDs, userToken)
+		errG := p.RetryRefreshMeetingRecordTask(ctx, meetingsIDs, userToken)
+		if errG != nil {
+			log.Errorf("BindCalendar go task RetryRefreshMeetingRecordTask err: %v", err)
+		}
 	}()
 	return nil
 }
@@ -216,7 +221,7 @@ func (p PluginService) TryJoinChatBycBindFirstCalendar(ctx context.Context, proj
 	resp, err := Meego.MeegoAPI.Chat.BotJoinChat(ctx, meego_api.BotJoinChatParam{
 		ProjectKey:      projectKey,
 		WorkItemTypeKey: workItemTypeKey,
-		AppIDs:          []string{config.LarkAppID},
+		AppIDs:          []string{config.GetAPPConfig().LarkAppID},
 		WorkItemID:      workItemID,
 		MeegoUserKey:    meegoUserKey,
 	})
@@ -279,7 +284,7 @@ func (p PluginService) RefreshMeetingRecordTask(ctx context.Context, meetingIDs 
 }
 
 func (p PluginService) RetryRefreshMeetingRecordTask(ctx context.Context, meetingIDs []string, userAccessToken string) error {
-	retry.Do(func() error {
+	err := retry.Do(func() error {
 		err := p.RefreshMeetingRecordTask(ctx, meetingIDs, userAccessToken)
 		if err != nil {
 			log.Errorf("RefreshMeetingRecordTask err, err: %v", err)
@@ -287,6 +292,10 @@ func (p PluginService) RetryRefreshMeetingRecordTask(ctx context.Context, meetin
 		}
 		return nil
 	}, retry.Delay(time.Second*6), retry.Attempts(3))
+	if err != nil {
+		log.Errorf("RetryRefreshMeetingRecordTask finally error, err: %v", err)
+		return err
+	}
 	return nil
 }
 
