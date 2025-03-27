@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Empty, Table, Toast } from '@douyinfe/semi-ui';
+import { IconEmpty } from '@douyinfe/semi-icons-lab';
 import { LinkType, WorkItemMeeting } from '../../../../../../models/types';
 import TextRender from '../TextRender';
 import TimeRender from '../TimeRender';
@@ -202,7 +203,12 @@ const ScheduleTable = ({ disabled, SDKReady }: IScheduleTable) => {
       columns={columns}
       dataSource={dataSource}
       pagination={pagination}
-      empty={<Empty style={{ minHeight: '120px' }} title={'暂无数据'} />}
+      empty={
+        <div>
+          <IconEmpty size="extra-large" />
+          <Empty style={{ minHeight: '120px' }} title={'暂无数据'} />
+        </div>
+      }
     />
   );
 };
