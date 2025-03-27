@@ -197,12 +197,12 @@ const ScheduleTable = ({ disabled, SDKReady }: IScheduleTable) => {
 
   return (
     <Table
-      style={{ minHeight: '300px' }}
+      style={{ minHeight: '280px' }}
       loading={loading}
       columns={columns}
       dataSource={dataSource}
       pagination={pagination}
-      empty={<Empty title={'暂无数据'} />}
+      empty={<Empty style={{ minHeight: '120px' }} title={'暂无数据'} />}
     />
   );
 };
