@@ -1,7 +1,9 @@
 package lark_api
 
-import "errors"
-
-var (
-	ErrResponseNotSuccess = errors.New("response is not success")
+import (
+	"fmt"
 )
+
+func NewErrResponseNotSuccess(code int, msg string) error {
+	return fmt.Errorf("response is not success, code: %d, msg: %s", code, msg)
+}

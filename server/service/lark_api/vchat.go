@@ -2,6 +2,7 @@ package lark_api
 
 import (
 	"context"
+
 	"github.com/gofiber/fiber/v2/log"
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
 	larkvc "github.com/larksuite/oapi-sdk-go/v3/service/vc/v1"
@@ -26,7 +27,7 @@ func (v VChatAPI) GetMeeting(ctx context.Context, meetingID string, userAccessTo
 	}
 	if !resp.Success() {
 		log.Errorf("[VChatAPI] GetMeeting resp not success, code: %v, msg: %v, LOGID: %s", resp.Code, resp.Msg, resp.RequestId())
-		return nil, ErrResponseNotSuccess
+		return nil, NewErrResponseNotSuccess(resp.Code, resp.Msg)
 	}
 	return (*GetMeetingRespData)(resp.Data), nil
 }
@@ -58,7 +59,7 @@ func (v VChatAPI) GetMeetingsListByNo(ctx context.Context, meetingNo string, sta
 	}
 	if !resp.Success() {
 		log.Errorf("[VChatAPI] GetMeeting resp not success, code: %v, msg: %v, LOGID: %s", resp.Code, resp.Msg, resp.RequestId())
-		return nil, ErrResponseNotSuccess
+		return nil, NewErrResponseNotSuccess(resp.Code, resp.Msg)
 	}
 	if len(resp.Data.MeetingBriefs) == 0 {
 		return []*Meeting{}, nil

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"meego_meeting_plugin/handler"
 	"meego_meeting_plugin/mw"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func SetupAPIRouter(app *fiber.App) {
-	apiRoute := app.Group("/api")
+	apiRoute := app.Group("/api", mw.ErrorHandle)
 	v1Route := apiRoute.Group("/v1")
 	{
 		v1Route.All("/ping", handler.GetPing)
