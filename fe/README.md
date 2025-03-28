@@ -15,6 +15,7 @@
 1. 修改 plugin.config.json 文件中 `pluginID` 和 `pluginSecret` 配置
 2. 修改 `src/constants/index.ts`文件中的 `PLUGIN_ID`和 `PLUGIN_SECRET`配置
 3. 修改文件 ` fe/src/models/api/index.ts` 中的 `CUSTOM_API_PREFIX `, `REDRECT_URL`, `FEISHU_APP_ID`配置
+4. 在前端目录下执行命令 `lpm config set pluginSecret {你的secret}`
 
 ### 发布产物
 

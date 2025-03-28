@@ -8,15 +8,14 @@
 
 **程序启动的必要参数如下**
 
-| 参数 | 说明|
-| --- | --- |
-| lark_app_id | 飞书应用凭证 app_id |
-| lark_app_secret | 飞书应用凭证 app_secret |
-| meego_plugin_id | 飞书项目插件凭证 app_id |
+| 参数                | 说明                        |
+| ------------------- | --------------------------- |
+| lark_app_id         | 飞书应用凭证 app_id         |
+| lark_app_secret     | 飞书应用凭证 app_secret     |
+| meego_plugin_id     | 飞书项目插件凭证 app_id     |
 | meego_plugin_secret | 飞书项目插件凭证 app_secret |
 
 本章节提及到的所有 `yourhost.com` 都需要替换为你想要部署的域名地址
-
 
 #### 创建&&配置飞书应用
 
@@ -60,12 +59,12 @@
   }
 }
 ```
+
 ![alt text](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/docs/img/server/1.png)
 
 3. 在事件与回调中配置好订阅方式和回调事件
 
 订阅方式中的请求域名请替换成将要部署的域名 `https://yourhost.com/api/v1/lark/webhook/event`
-
 
 ![alt text](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/docs/img/server/2.png)
 
@@ -81,11 +80,34 @@
 
 #### 创建飞书项目插件
 
-由于本插件暂时不需要额外的权限设置，创建过程详见 [飞书项目开发者中心](https://project.feishu.cn/b/helpcenter/1p8d7djs/359lzbgu)。
+创建过程详见 [飞书项目开发者中心](https://project.feishu.cn/b/helpcenter/1p8d7djs/359lzbgu)，创建好之后添加 **群组拉机器人权限**
+（group:group.bot:write）
 
 创建好之后, 记录下飞书项目插件的凭证信息
 
 ![alt text](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/docs/img/server/5.png)
+
+### 配置文件说明
+
+文件位置：`config.yaml`
+
+```yaml
+database:
+  type: sqlite  # 数据库类型: sqlite, mysql, tidb, postgresql, sqlserver
+  host: 127.0.0.1 # 数据库 ip
+  port: 3306 # 数据库端口
+  user: admin # 数据库用户
+  password: 123456 # 数据库密码
+  db_name: plugin # 数据库库名
+app_config:
+  # 飞书开放平台配置
+  lark_app_id: lark_app_id #飞书应用凭证 app_id
+  lark_app_secret: lark_app_secret # 飞书应用凭证 app_secret
+  # Meego 开放平台配置
+  meego_plugin_id: meego_plugin_id # 飞书项目插件凭证 app_id
+  meego_plugin_secret: meego_plugin_secret # 飞书项目插件凭证 app_secret
+
+```
 
 ### 从 docker 镜像启动服务
 
@@ -107,11 +129,11 @@ TODO
 
 启动参数说明
 
-| 参数 | 说明|
-| --- | --- |
-| lark_app_id | 飞书应用凭证 app_id |
-| lark_app_secret | 飞书应用凭证 app_secret |
-| meego_plugin_id | 飞书项目插件凭证 app_id |
+| 参数                | 说明                        |
+| ------------------- | --------------------------- |
+| lark_app_id         | 飞书应用凭证 app_id         |
+| lark_app_secret     | 飞书应用凭证 app_secret     |
+| meego_plugin_id     | 飞书项目插件凭证 app_id     |
 | meego_plugin_secret | 飞书项目插件凭证 app_secret |
 
 3. 执行命令之后，如果没有意外的话，后端服务将运行在 7999 端口上
@@ -119,7 +141,7 @@ TODO
 如果正常启动, 你将会看到终端输出如下图所示的信息:
 ![alt text](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/docs/img/server/6.png)
 
-并且在二进制文件的同级目录下生成一个`plugin.db`的数据库文件.
+并且在二进制文件的同级目录下生成一个 `plugin.db`的数据库文件.
 
 > TODO: 后续会将支持自定义配置启动端口
 
@@ -130,7 +152,6 @@ TODO
 ### 从源码构建程序
 
 1. 安装好 golang 1.19
-
 2. 拉取本项目源码到本地
 
 ```
@@ -145,7 +166,7 @@ git clone https://github.com/jimu5/meego_meeting_plugin.git
 cd server && go mod tidy && go build -ldflags="-s -w" -o meego_meeting_plugin .
 ```
 
-上面命令执行完毕之后, 编译产物会出现在 `./server/` 目录下, 文件名是`meego_meeting_plugin`
+上面命令执行完毕之后, 编译产物会出现在 `./server/` 目录下, 文件名是 `meego_meeting_plugin`
 
 ## 后续规划
 
