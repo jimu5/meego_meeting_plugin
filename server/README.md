@@ -127,7 +127,7 @@ TODO
 ./meego_meeting_plugin -lark_app_id=飞书开放app_id -lark_app_secret=飞书开放app_secret -meego_plugin_id=飞书项目插件id -meego_plugin_secret=飞书项目插件plugin_secret
 ```
 
-启动参数说明
+启动参数会优先于配置文件生效，启动参数说明
 
 | 参数                | 说明                        |
 | ------------------- | --------------------------- |

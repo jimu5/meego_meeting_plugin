@@ -16,16 +16,16 @@ func InitConfig() {
 
 	flag.Parse()
 
-	if larkAppID != nil {
+	if larkAppID != nil && len(*larkAppID) != 0 {
 		Config.APPConfig.LarkAppID = *larkAppID
 	}
-	if larkAppSecret != nil {
+	if larkAppSecret != nil && len(*larkAppSecret) != 0 {
 		Config.APPConfig.LarkAppSecret = *larkAppSecret
 	}
-	if meegoPluginID != nil {
+	if meegoPluginID != nil && len(*meegoPluginID) != 0 {
 		Config.APPConfig.MeegoPluginID = *meegoPluginID
 	}
-	if meegoPluginSecret != nil {
+	if meegoPluginSecret != nil && len(*meegoPluginSecret) != 0 {
 		Config.APPConfig.MeegoPluginSecret = *meegoPluginSecret
 	}
 
