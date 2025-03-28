@@ -99,9 +99,9 @@ func (l LarkService) SearchCalendarByTimeAndChatIDs(ctx context.Context, queryWo
 }
 
 // 获取会议的信息
-func (l LarkService) GetMeetingRecordInfoByCalendar(ctx context.Context, calendarID, calendarEventID, userAccessToken string) (CalendarMeetingInfo, error) {
+func (l LarkService) GetMeetingRecordInfoByCalendar(ctx context.Context, calendarEventID, userAccessToken string) (CalendarMeetingInfo, error) {
+	var calendarID string
 	res := CalendarMeetingInfo{
-		CalendarID:      calendarID,
 		CalendarEventID: calendarEventID,
 	}
 	// 1. 获取第一个主日程 ID

@@ -3,17 +3,19 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"time"
+
+	"meego_meeting_plugin/common"
+	"meego_meeting_plugin/dal"
+	"meego_meeting_plugin/service"
+	"meego_meeting_plugin/service/lark_api"
+
 	"github.com/avast/retry-go"
 	"github.com/gofiber/fiber/v2/log"
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
 	"github.com/larksuite/oapi-sdk-go/v3/event/dispatcher"
 	larkim "github.com/larksuite/oapi-sdk-go/v3/service/im/v1"
 	larkvc "github.com/larksuite/oapi-sdk-go/v3/service/vc/v1"
-	"meego_meeting_plugin/common"
-	"meego_meeting_plugin/dal"
-	"meego_meeting_plugin/service"
-	"meego_meeting_plugin/service/lark_api"
-	"time"
 )
 
 var LarkEventHandler = dispatcher.NewEventDispatcher("", "").
@@ -113,7 +115,6 @@ func handleChatCalendarMessage(ctx context.Context, eventBody *larkim.P2MessageR
 		ProjectKey:      record.ProjectKey,
 		WorkItemTypeKey: record.WorkItemTypeKey,
 		WorkItemID:      record.WorkItemID,
-		CalendarID:      getPointerInfo(event.OrganizerCalendarId),
 		CalendarEventID: getPointerInfo(event.EventId),
 	}, userInfo.LarkUserAccessToken, record.Operator)
 	if err != nil {

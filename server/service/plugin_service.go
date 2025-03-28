@@ -37,13 +37,12 @@ type BindCalendarParam struct {
 	ProjectKey      string `json:"project_key"`
 	WorkItemTypeKey string `json:"work_item_type_key"`
 	WorkItemID      int64  `json:"work_item_id"`
-	CalendarID      string `json:"calendar_id"`       // 日历 ID
 	CalendarEventID string `json:"calendar_event_id"` // 日程 ID
 }
 
 func (p PluginService) BindCalendar(ctx context.Context, param BindCalendarParam, userToken, meegoUserKey string) error {
 	operator := meegoUserKey
-	meetingInfo, err := Lark.GetMeetingRecordInfoByCalendar(ctx, param.CalendarID, param.CalendarEventID, userToken)
+	meetingInfo, err := Lark.GetMeetingRecordInfoByCalendar(ctx, param.CalendarEventID, userToken)
 	if err != nil {
 		log.Errorf("[PluginService] BindCalendar GetMeetingRecordInfoByCalendar err, err: %v", err)
 		return err
@@ -62,7 +61,7 @@ func (p PluginService) BindCalendar(ctx context.Context, param BindCalendarParam
 		return err
 	}
 	modelCalendarBindInfo := model.CalendarBind{
-		CalendarID:             param.CalendarID,
+		CalendarID:             meetingInfo.CalendarID,
 		CalendarEventID:        param.CalendarEventID,
 		WorkItemID:             param.WorkItemID,
 		WorkItemTypeKey:        param.WorkItemTypeKey,
@@ -75,7 +74,7 @@ func (p PluginService) BindCalendar(ctx context.Context, param BindCalendarParam
 	if err != nil {
 		return err
 	}
-	modelMeetings := MeetingInfos2ModelVCMeeting(meetingInfos, param.CalendarID, param.CalendarEventID)
+	modelMeetings := MeetingInfos2ModelVCMeeting(meetingInfos, meetingInfo.CalendarID, param.CalendarEventID)
 	err = dal.CalendarBind.CreateOrUpdateCalendarMeetings(ctx, modelMeetings, operator)
 	if err != nil {
 		return err
@@ -160,7 +159,6 @@ func (p PluginService) RefreshBind(ctx context.Context, workItemID int64) error 
 			ProjectKey:      bind.ProjectKey,
 			WorkItemTypeKey: bind.WorkItemTypeKey,
 			WorkItemID:      bind.WorkItemID,
-			CalendarID:      bind.CalendarID,
 			CalendarEventID: bind.CalendarEventID,
 		}
 		go func() {
