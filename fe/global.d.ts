@@ -1,11 +1,3 @@
-import type { SDKClient } from '@lark-project/js-sdk';
-
-declare global {
-  interface Window {
-    JSSDK: SDKClient;
-  }
-}
-
 // static resource
 declare module '*.png';
 declare module '*.jpg';
@@ -163,4 +155,11 @@ declare module '@lark-project/Pingere' {
       onError?: () => void;
     } & React.RefAttributes<unknown>
   >;
+}
+
+declare global {
+  import jsSDK = require('@lark-project/js-sdk');
+  interface Window {
+    JSSDK: jsSDK.SDKClient;
+  }
 }

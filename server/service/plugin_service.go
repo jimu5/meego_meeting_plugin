@@ -4,18 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/avast/retry-go"
-	"github.com/gofiber/fiber/v2/log"
-	"github.com/larksuite/project-oapi-sdk-golang/service/user"
-	"github.com/samber/lo"
-	"gorm.io/gorm"
+	"sync"
+	"time"
+
 	"meego_meeting_plugin/config"
 	"meego_meeting_plugin/dal"
 	"meego_meeting_plugin/model"
 	"meego_meeting_plugin/service/lark_api"
 	"meego_meeting_plugin/service/meego_api"
-	"sync"
-	"time"
+
+	"github.com/avast/retry-go"
+	"github.com/gofiber/fiber/v2/log"
+	"github.com/larksuite/project-oapi-sdk-golang/service/user"
+	"github.com/samber/lo"
+	"gorm.io/gorm"
 )
 
 var Plugin = NewPluginService()
@@ -35,13 +37,12 @@ type BindCalendarParam struct {
 	ProjectKey      string `json:"project_key"`
 	WorkItemTypeKey string `json:"work_item_type_key"`
 	WorkItemID      int64  `json:"work_item_id"`
-	CalendarID      string `json:"calendar_id"`       // 日历 ID
 	CalendarEventID string `json:"calendar_event_id"` // 日程 ID
 }
 
 func (p PluginService) BindCalendar(ctx context.Context, param BindCalendarParam, userToken, meegoUserKey string) error {
 	operator := meegoUserKey
-	meetingInfo, err := Lark.GetMeetingRecordInfoByCalendar(ctx, param.CalendarID, param.CalendarEventID, userToken)
+	meetingInfo, err := Lark.GetMeetingRecordInfoByCalendar(ctx, param.CalendarEventID, userToken)
 	if err != nil {
 		log.Errorf("[PluginService] BindCalendar GetMeetingRecordInfoByCalendar err, err: %v", err)
 		return err
@@ -60,7 +61,7 @@ func (p PluginService) BindCalendar(ctx context.Context, param BindCalendarParam
 		return err
 	}
 	modelCalendarBindInfo := model.CalendarBind{
-		CalendarID:             param.CalendarID,
+		CalendarID:             meetingInfo.CalendarID,
 		CalendarEventID:        param.CalendarEventID,
 		WorkItemID:             param.WorkItemID,
 		WorkItemTypeKey:        param.WorkItemTypeKey,
@@ -73,14 +74,17 @@ func (p PluginService) BindCalendar(ctx context.Context, param BindCalendarParam
 	if err != nil {
 		return err
 	}
-	modelMeetings := MeetingInfos2ModelVCMeeting(meetingInfos, param.CalendarID, param.CalendarEventID)
+	modelMeetings := MeetingInfos2ModelVCMeeting(meetingInfos, meetingInfo.CalendarID, param.CalendarEventID)
 	err = dal.CalendarBind.CreateOrUpdateCalendarMeetings(ctx, modelMeetings, operator)
 	if err != nil {
 		return err
 	}
 	// p.TryJoinChatBycBindFirstCalendar(ctx, param.ProjectKey, param.WorkItemTypeKey, param.WorkItemID, operator)
 	go func() {
-		p.RetryRefreshMeetingRecordTask(ctx, meetingsIDs, userToken)
+		errG := p.RetryRefreshMeetingRecordTask(ctx, meetingsIDs, userToken)
+		if errG != nil {
+			log.Errorf("BindCalendar go task RetryRefreshMeetingRecordTask err: %v", err)
+		}
 	}()
 	return nil
 }
@@ -155,7 +159,6 @@ func (p PluginService) RefreshBind(ctx context.Context, workItemID int64) error 
 			ProjectKey:      bind.ProjectKey,
 			WorkItemTypeKey: bind.WorkItemTypeKey,
 			WorkItemID:      bind.WorkItemID,
-			CalendarID:      bind.CalendarID,
 			CalendarEventID: bind.CalendarEventID,
 		}
 		go func() {
@@ -216,7 +219,7 @@ func (p PluginService) TryJoinChatBycBindFirstCalendar(ctx context.Context, proj
 	resp, err := Meego.MeegoAPI.Chat.BotJoinChat(ctx, meego_api.BotJoinChatParam{
 		ProjectKey:      projectKey,
 		WorkItemTypeKey: workItemTypeKey,
-		AppIDs:          []string{config.LarkAppID},
+		AppIDs:          []string{config.GetAPPConfig().LarkAppID},
 		WorkItemID:      workItemID,
 		MeegoUserKey:    meegoUserKey,
 	})
@@ -279,7 +282,7 @@ func (p PluginService) RefreshMeetingRecordTask(ctx context.Context, meetingIDs 
 }
 
 func (p PluginService) RetryRefreshMeetingRecordTask(ctx context.Context, meetingIDs []string, userAccessToken string) error {
-	retry.Do(func() error {
+	err := retry.Do(func() error {
 		err := p.RefreshMeetingRecordTask(ctx, meetingIDs, userAccessToken)
 		if err != nil {
 			log.Errorf("RefreshMeetingRecordTask err, err: %v", err)
@@ -287,6 +290,10 @@ func (p PluginService) RetryRefreshMeetingRecordTask(ctx context.Context, meetin
 		}
 		return nil
 	}, retry.Delay(time.Second*6), retry.Attempts(3))
+	if err != nil {
+		log.Errorf("RetryRefreshMeetingRecordTask finally error, err: %v", err)
+		return err
+	}
 	return nil
 }
 

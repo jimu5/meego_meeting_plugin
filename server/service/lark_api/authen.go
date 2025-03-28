@@ -34,7 +34,7 @@ func (a AuthenAPI) GetUserAccessToken(ctx context.Context, appAccessToken, authC
 	}
 	if resp.Data == nil {
 		log.Error("err login resp empty")
-		return nil, ErrResponseNotSuccess
+		return nil, NewErrResponseNotSuccess(resp.Code, resp.Msg)
 	}
 	if !resp.Success() {
 		log.Error(resp.Code, resp.Msg, resp.RequestId())

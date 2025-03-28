@@ -1,19 +1,21 @@
 package handler
 
 import (
+	"sort"
+	"strconv"
+
+	"meego_meeting_plugin/common"
+	"meego_meeting_plugin/dal"
+	"meego_meeting_plugin/model"
+	"meego_meeting_plugin/service"
+	"meego_meeting_plugin/service/lark_api"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	larkcalendar "github.com/larksuite/oapi-sdk-go/v3/service/calendar/v4"
 	larkvc "github.com/larksuite/oapi-sdk-go/v3/service/vc/v1"
 	"github.com/larksuite/project-oapi-sdk-golang/service/user"
 	"github.com/samber/lo"
-	"meego_meeting_plugin/common"
-	"meego_meeting_plugin/dal"
-	"meego_meeting_plugin/model"
-	"meego_meeting_plugin/service"
-	"meego_meeting_plugin/service/lark_api"
-	"sort"
-	"strconv"
 )
 
 type CalendarSearchParam struct {
@@ -76,7 +78,7 @@ func BindCalendarEventWithWorkItem(c *fiber.Ctx) error {
 		return err
 	}
 	if len(param.ProjectKey) == 0 || len(param.WorkItemTypeKey) == 0 || param.WorkItemID == 0 ||
-		len(param.CalendarID) == 0 || len(param.CalendarEventID) == 0 {
+		len(param.CalendarEventID) == 0 {
 		return ErrInvalidParam
 	}
 	token := c.Locals(common.LarkUserAccessToken).(string)
@@ -85,7 +87,6 @@ func BindCalendarEventWithWorkItem(c *fiber.Ctx) error {
 		ProjectKey:      param.ProjectKey,
 		WorkItemTypeKey: param.WorkItemTypeKey,
 		WorkItemID:      param.WorkItemID,
-		CalendarID:      param.CalendarID,
 		CalendarEventID: param.CalendarEventID,
 	}, token, operator)
 	if err != nil {

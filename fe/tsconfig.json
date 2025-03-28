@@ -25,6 +25,9 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src", "global.d.ts"],
+  "include": [
+    "src",
+    "global.d.ts",
+  ],
   "exclude": ["node_modules", "output"]
 }

@@ -2,6 +2,7 @@
   "name": "meeting_manage",
   "version": "0.0.1",
   "dependencies": {
+    "@douyinfe/semi-icons-lab": "^2.77.1",
     "@douyinfe/semi-ui": "2.25.4",
     "@lark-project/js-sdk": "^2.0.5",
     "axios": "^1.8.2",

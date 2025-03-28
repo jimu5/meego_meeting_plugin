@@ -10,9 +10,9 @@ var own_client *LarkClient
 
 func InitOwnClient() *LarkClient {
 	l := &LarkClient{
-		Client:    lark.NewClient(config.LarkAppID, config.LarkAppSecret, lark.WithEnableTokenCache(true)),
-		appID:     config.LarkAppID,
-		appSecret: config.LarkAppSecret,
+		Client:    lark.NewClient(config.GetAPPConfig().LarkAppID, config.GetAPPConfig().LarkAppSecret, lark.WithEnableTokenCache(true)),
+		appID:     config.GetAPPConfig().LarkAppID,
+		appSecret: config.GetAPPConfig().LarkAppSecret,
 	}
 
 	own_client = l

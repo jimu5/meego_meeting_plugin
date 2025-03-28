@@ -13,7 +13,7 @@ import (
 var own_client *sdk.Client
 
 func InitOwnClient() *sdk.Client {
-	c := sdk.NewClient(config.MeegoPluginID, config.MeegoPluginSecret, sdk.WithLogLevel(core.LogLevelDebug),
+	c := sdk.NewClient(config.GetAPPConfig().MeegoPluginID, config.GetAPPConfig().MeegoPluginSecret, sdk.WithLogLevel(core.LogLevelDebug),
 		sdk.WithReqTimeout(3*time.Second),
 		sdk.WithEnableTokenCache(true),
 		sdk.WithHttpClient(http.DefaultClient),

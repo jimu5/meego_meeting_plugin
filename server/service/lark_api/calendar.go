@@ -2,6 +2,7 @@ package lark_api
 
 import (
 	"context"
+
 	"github.com/gofiber/fiber/v2/log"
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
 	larkcalendar "github.com/larksuite/oapi-sdk-go/v3/service/calendar/v4"
@@ -38,7 +39,7 @@ func (c CalendarAPI) GetPrimaryCalendars(ctx context.Context, userAccessToken st
 		return nil, resp.CodeError
 	}
 	if resp.Data == nil {
-		return nil, ErrResponseNotSuccess
+		return nil, NewErrResponseNotSuccess(resp.Code, resp.Msg)
 	}
 	result := make([]*UserCalendar, 0, len(resp.Data.Calendars))
 	for _, c := range resp.Data.Calendars {
@@ -127,7 +128,7 @@ func (c CalendarAPI) GetCalendarEventDetail(ctx context.Context, calendarID, eve
 	}
 	if !resp.Success() {
 		log.Errorf("[CalendarAPI] GetCalendarEventDetail resp not success, code: %v, msg: %v, LOGID: %s", resp.Code, resp.Msg, resp.RequestId())
-		return nil, ErrResponseNotSuccess
+		return nil, NewErrResponseNotSuccess(resp.Code, resp.Msg)
 	}
 
 	return (*GetCalendarEventRespData)(resp.Data), nil
@@ -147,7 +148,7 @@ func (c CalendarAPI) SubscriptionCalendarChangeEvent(ctx context.Context, calend
 	}
 	if !resp.Success() {
 		log.Error(resp.Code, resp.Msg, resp.RequestId())
-		return nil, ErrResponseNotSuccess
+		return nil, NewErrResponseNotSuccess(resp.Code, resp.Msg)
 	}
 	return resp.Data, nil
 }

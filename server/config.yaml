@@ -1,0 +1,14 @@
+database:
+  type: sqlite  # 数据库类型: sqlite, mysql, tidb, postgresql, sqlserver
+  host: 127.0.0.1 # 数据库 ip
+  port: 3306 # 数据库端口
+  user: admin # 数据库用户
+  password: 123456 # 数据库密码
+  db_name: plugin # 数据库库名
+app_config:
+  # 飞书开放平台配置
+  lark_app_id: lark_app_id #飞书应用凭证 app_id
+  lark_app_secret: lark_app_secret # 飞书应用凭证 app_secret
+  # Meego 开放平台配置
+  meego_plugin_id: meego_plugin_id # 飞书项目插件凭证 app_id
+  meego_plugin_secret: meego_plugin_secret # 飞书项目插件凭证 app_secret
