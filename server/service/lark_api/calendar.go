@@ -2,6 +2,8 @@ package lark_api
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/gofiber/fiber/v2/log"
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
@@ -62,6 +64,14 @@ func (c CalendarAPI) SearchCalendarEvents(ctx context.Context, calendarID, query
 		PageSize(pageParam.PageSize).PageToken(pageParam.PageToken).
 		Body(larkcalendar.NewSearchCalendarEventReqBodyBuilder().
 			Query(queryWord).
+			Filter(&larkcalendar.EventSearchFilter{
+				StartTime: &larkcalendar.TimeInfo{
+					Timestamp: GetPtr(fmt.Sprintf("%d", time.Now().Add(-90*24*time.Hour).Second())),
+				},
+				EndTime: &larkcalendar.TimeInfo{
+					Timestamp: GetPtr(fmt.Sprintf("%d", time.Now().Add(90*24*time.Hour).Second())),
+				},
+			}).
 			Build()).
 		Build()
 

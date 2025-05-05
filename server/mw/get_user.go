@@ -12,18 +12,26 @@ type ReqHeaders struct {
 }
 
 func GetUser(c *fiber.Ctx) error {
+	err := GetAndSetUserInfo(c)
+	if err != nil {
+		return err
+	}
+	return c.Next()
+}
+
+func GetAndSetUserInfo(c *fiber.Ctx) error {
 	userKey := c.Get(common.MeegoUserKey)
 	if len(userKey) == 0 {
 		c.SendStatus(401)
-		return nil
+		return common.ErrorNotLogin
 	}
 	c.Locals(common.MeegoUserKey, userKey)
 	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(c.Context(), userKey)
 	if err != nil {
 		log.Error(err)
 		c.SendStatus(401)
-		return nil
+		return common.ErrorNotLogin
 	}
 	c.Locals(common.LarkUserAccessToken, userInfo.LarkUserAccessToken)
-	return c.Next()
+	return nil
 }

@@ -11,4 +11,6 @@ var (
 
 	ErrNilUser = errors.New("err nil user")
 	ErrToken   = errors.New("err token")
+
+	ErrTryBotJoinChat = errors.New("邀请机器人加入群聊失败，请检查是否创建群聊，详细错误: ")
 )

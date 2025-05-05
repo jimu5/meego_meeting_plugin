@@ -124,6 +124,8 @@ const BindSchedule = ({ disabled, SDKReady }: IBindSchedule) => {
       return;
     }
     getAutoBindMeetingsStatus({
+      project_key: store?.projectId,
+      work_item_type_key: store?.workItemTypeKey,
       work_item_id: store?.workItemId,
     }, store.userId).then(res => {
       setEnbale(res.enable);
