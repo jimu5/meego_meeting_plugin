@@ -108,7 +108,10 @@ func handleChatCalendarMessage(ctx context.Context, eventBody *larkim.P2MessageR
 		}
 		return nil
 	}, retry.Delay(time.Second*5), retry.Attempts(3), retry.DelayType(retry.FixedDelay))
-
+	if err != nil && len(calendars.Items) == 0 {
+		log.Errorf("[handleChatCalendarMessage] err get event, err: %v", err)
+		return err
+	}
 	// 目前支取用第一个
 	event := calendars.Items[0]
 	err = service.Plugin.BindCalendar(ctx, service.BindCalendarParam{

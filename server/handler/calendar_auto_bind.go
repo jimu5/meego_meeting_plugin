@@ -89,13 +89,19 @@ func GetAutoBindCalendarStatus(c *fiber.Ctx) error {
 			return err
 		}
 		meegoUserKey := GetMeegoUserKey(c)
-		err = service.Plugin.AutoBindCalendar(c.Context(), true, param.ProjectKey, param.WorkItemTypeKey, param.WorkItemID, meegoUserKey)
-		if err != nil {
-			// 这里尝试自动绑定失败了不要降级
-			log.Errorf("[GetAutoBindCalendarStatus] err auto bind, err: %v", err)
+		if len(param.ProjectKey) == 0 || len(param.WorkItemTypeKey) == 0 || param.WorkItemID == 0 {
+			log.Warnf("[GetAutoBindCalendarStatus] error param empty, projectKey: %s, workItemTypeKey: %s, workItemID: %d",
+				param.ProjectKey, param.WorkItemTypeKey, param.WorkItemID)
 		} else {
-			resp.Enable = true
+			err = service.Plugin.AutoBindCalendar(c.Context(), true, param.ProjectKey, param.WorkItemTypeKey, param.WorkItemID, meegoUserKey)
+			if err != nil {
+				// 这里尝试自动绑定失败了不要降级
+				log.Errorf("[GetAutoBindCalendarStatus] err auto bind, err: %v", err)
+			} else {
+				resp.Enable = true
+			}
 		}
+
 	} else {
 		resp.Enable = record.Enable
 	}
