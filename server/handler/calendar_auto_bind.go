@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"gorm.io/gorm"
 	"meego_meeting_plugin/dal"
+	"meego_meeting_plugin/mw"
 	"meego_meeting_plugin/service"
 )
 
@@ -33,50 +34,22 @@ func ChatAutoBindCalendar(c *fiber.Ctx) error {
 		log.Error(err)
 		return err
 	}
-	record, err := dal.JoinChatRecord.FirstByWorkItemID(c.Context(), param.WorkItemID)
-	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error(err)
-			errMsg := ErrMsgResp{Msg: err.Error()}
-			c.JSON(&errMsg)
-			c.SendStatus(400)
-			return nil
-		}
-	}
+
 	meegoUserKey := GetMeegoUserKey(c)
-	if record == nil && param.Enable {
-		err = service.Plugin.TryJoinChatBycBindFirstCalendar(c.Context(), param.ProjectKey, param.WorkItemTypeKey, param.WorkItemID, meegoUserKey)
-		if err != nil {
-			log.Error(err)
-			errMsg := ErrMsgResp{Msg: "请先创建当前工作项实例的飞书群聊"}
-			c.JSON(&errMsg)
-			c.SendStatus(400)
-			return nil
-		}
-		// FIXME: 写后读场景, 不应该有 error, 但是需要读主库
-		record, err = dal.JoinChatRecord.FirstByWorkItemID(c.Context(), param.WorkItemID)
-		if err != nil {
-			log.Error(err)
-			return err
-		}
-	}
+	err = service.Plugin.AutoBindCalendar(c.Context(), param.Enable, param.ProjectKey, param.WorkItemTypeKey, param.WorkItemID, meegoUserKey)
 
-	if record == nil {
-		return nil
-	}
-
-	record.Enable = param.Enable
-	record.Operator = meegoUserKey
-	err = dal.JoinChatRecord.Save(c.Context(), record)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("[ChatAutoBindCalendar] err: %v", err)
 		return err
 	}
+
 	return nil
 }
 
 type GetAutoBindCalendarStatusReq struct {
-	WorkItemID int64 `query:"work_item_id" json:"work_item_id"`
+	ProjectKey      string `query:"project_key" json:"project_key"`
+	WorkItemTypeKey string `query:"work_item_type_key" json:"work_item_type_key"`
+	WorkItemID      int64  `query:"work_item_id" json:"work_item_id"`
 }
 
 type GetAutoBindCalendarStatusResp struct {
@@ -96,7 +69,7 @@ func GetAutoBindCalendarStatus(c *fiber.Ctx) error {
 	var param GetAutoBindCalendarStatusReq
 	err := c.QueryParser(&param)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("[GetAutoBindCalendarStatus] err: %v", err)
 		return err
 	}
 
@@ -111,7 +84,18 @@ func GetAutoBindCalendarStatus(c *fiber.Ctx) error {
 		}
 	}
 	if record == nil {
-		resp.Enable = false
+		err = mw.GetAndSetUserInfo(c)
+		if err != nil {
+			return err
+		}
+		meegoUserKey := GetMeegoUserKey(c)
+		err = service.Plugin.AutoBindCalendar(c.Context(), true, param.ProjectKey, param.WorkItemTypeKey, param.WorkItemID, meegoUserKey)
+		if err != nil {
+			// 这里尝试自动绑定失败了不要降级
+			log.Errorf("[GetAutoBindCalendarStatus] err auto bind, err: %v", err)
+		} else {
+			resp.Enable = true
+		}
 	} else {
 		resp.Enable = record.Enable
 	}

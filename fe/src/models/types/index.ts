@@ -193,6 +193,8 @@ export interface BindMeetingsParamsRes {
 }
 
 export interface GetAutoBindMeetingsStatus {
+  project_key: string;
+  work_item_type_key: string;
   work_item_id: number;
 }
 export interface GetAutoBindMeetingsStatusRes {

@@ -96,11 +96,8 @@ func (p PluginService) GetUserInfoByMeegoUserKey(ctx context.Context, meegoUserK
 	if err != nil {
 		return model.User{}, err
 	}
-	if userInfo.LarkUserRefreshTokenExpiredAt.Add(-3*time.Second).UnixMilli() < time.Now().UnixMilli() {
-		return model.User{}, err
-	}
 	refreshTag := false
-	if userInfo.LarkUserAccessTokenExpireAt.Add(-3*time.Second).UnixMilli() < time.Now().UnixMilli() {
+	if userInfo.LarkUserAccessTokenExpireAt.Add(-10*time.Second).UnixMilli() < time.Now().UnixMilli() {
 		refreshTag = true
 	}
 	userData, err := Lark.LarkAPI.AuthenAPI.UserInfo(ctx, userInfo.LarkUserAccessToken)
@@ -129,6 +126,18 @@ func (p PluginService) GetUserInfoByMeegoUserKey(ctx context.Context, meegoUserK
 		}
 	}
 	return userInfo, nil
+}
+
+func (p PluginService) ResetUserTokenExpired(ctx context.Context, meegoUserKey string) error {
+	userInfo, err := User.GetUserInfoByMeegoUserKey(ctx, meegoUserKey)
+	if err != nil {
+		return err
+	}
+
+	userInfo.LarkUserRefreshTokenExpiredAt = time.Now().Add(-1 * time.Second)
+	userInfo.LarkUserAccessTokenExpireAt = time.Now().Add(-1 * time.Second)
+	err = User.SaveUser(ctx, &userInfo)
+	return err
 }
 
 func (p PluginService) RefreshBind(ctx context.Context, workItemID int64) error {
@@ -203,8 +212,46 @@ func (p PluginService) RefreshBind(ctx context.Context, workItemID int64) error 
 	return err
 }
 
+func (p PluginService) AutoBindCalendar(ctx context.Context, enable bool, projectKey, workItemTypeKey string, workItemID int64,
+	meegoUserKey string) error {
+	record, err := dal.JoinChatRecord.FirstByWorkItemID(ctx, workItemID)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error(err)
+			return err
+		}
+	}
+	if record == nil && enable {
+		err = p.tryJoinChatBycBindFirstCalendar(ctx, projectKey, workItemTypeKey, workItemID, meegoUserKey)
+		if err != nil {
+			log.Errorf("[PluginService.AutoBindCalendar] err tryJoinChatBycBindFirstCalendar, detail: %v", err)
+			return err
+		}
+		// FIXME: 写后读场景, 不应该有 error, 但是需要读主库
+		record, err = dal.JoinChatRecord.FirstByWorkItemID(ctx, workItemID)
+		if err != nil {
+			log.Error("[PluginService.AutoBindCalendar] err FirstByWorkItemID: %v", err)
+			return err
+		}
+	}
+
+	if record == nil {
+		return nil
+	}
+
+	record.Enable = enable
+	record.Operator = meegoUserKey
+	err = dal.JoinChatRecord.Save(ctx, record)
+	if err != nil {
+		log.Errorf("[PluginService.AutoBindCalendar] error save join chat: %v", err)
+		return err
+	}
+
+	return nil
+}
+
 // 尝试将机器人拉进群
-func (p PluginService) TryJoinChatBycBindFirstCalendar(ctx context.Context, projectKey, workItemTypeKey string, workItemID int64,
+func (p PluginService) tryJoinChatBycBindFirstCalendar(ctx context.Context, projectKey, workItemTypeKey string, workItemID int64,
 	meegoUserKey string) error {
 	record, err := dal.JoinChatRecord.FirstByWorkItemID(ctx, workItemID)
 	if err != nil {
@@ -224,8 +271,8 @@ func (p PluginService) TryJoinChatBycBindFirstCalendar(ctx context.Context, proj
 		MeegoUserKey:    meegoUserKey,
 	})
 	if err != nil {
-		log.Error(err)
-		return err
+		log.Errorf("[PluginService.tryJoinChatBycBindFirstCalendar] err BotJoinChat: %v", err)
+		return errors.New(ErrTryBotJoinChat.Error() + err.Error())
 	}
 	record = &model.JoinChatRecord{
 		WorkItemID:      workItemID,
