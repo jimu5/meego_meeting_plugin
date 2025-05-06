@@ -71,8 +71,24 @@ func handleChatCalendarMessage(ctx context.Context, eventBody *larkim.P2MessageR
 		// 没有启用
 		return nil
 	}
+	// 使用发消息人的信息来进行日程搜索
+	var larkUserKey string
+	if eventBody.Sender != nil && eventBody.Sender.SenderId != nil {
+		larkUserKey = *eventBody.Sender.SenderId.UserId
+	}
+	// 获取 Lark 用户关联的 Meego 用户
+	var meegoUserKey string
+	if len(larkUserKey) != 0 {
+		larkUser, errU := service.User.GetUserInfoByLarkUserID(ctx, larkUserKey)
+		if errU != nil {
+			log.Warnf("cant find lark user related meego user, lark user id: %s", larkUserKey)
+		} else {
+			meegoUserKey = larkUser.MeegoUserKey
+		}
+	}
+
 	// 使用 record 的 userKey 和开始结束时间以及关键字来搜索日程
-	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(ctx, record.Operator)
+	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(ctx, meegoUserKey)
 	if err != nil {
 		log.Errorf("[handleChatCalendarMessage] GetUserInfoByMeegoUserKey err, userKey: %s, err: %v", userInfo, err)
 		return err

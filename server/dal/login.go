@@ -36,3 +36,16 @@ func (u UserDao) QueryByMeegoUserKey(ctx context.Context, meegoUserKey string) (
 	}
 	return result, err
 }
+
+func (u UserDao) QueryByLarkUserID(ctx context.Context, larkUserID string) (*model.User, error) {
+	// 不够严谨
+	if len(larkUserID) == 0 {
+		return nil, nil
+	}
+	result := &model.User{}
+	err := db.WithContext(ctx).Where("lark_user_id = ?", larkUserID).First(result).Error
+	if err != nil {
+		log.Error(err)
+	}
+	return result, err
+}
