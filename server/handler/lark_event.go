@@ -135,7 +135,7 @@ func handleChatCalendarMessage(ctx context.Context, eventBody *larkim.P2MessageR
 		WorkItemTypeKey: record.WorkItemTypeKey,
 		WorkItemID:      record.WorkItemID,
 		CalendarEventID: getPointerInfo(event.EventId),
-	}, userInfo.LarkUserAccessToken, record.Operator)
+	}, userInfo.LarkUserAccessToken, meegoUserKey)
 	if err != nil {
 		log.Errorf("[handleChatCalendarMessage] bind err, err: %v", err)
 		return err
