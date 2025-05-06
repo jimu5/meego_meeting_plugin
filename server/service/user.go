@@ -24,6 +24,18 @@ func (u UserService) GetUserInfoByMeegoUserKey(ctx context.Context, meegoUserKey
 	return *user, nil
 }
 
+func (u UserService) GetUserInfoByLarkUserID(ctx context.Context, larkUserID string) (model.User, error) {
+	user, err := dal.User.QueryByLarkUserID(ctx, larkUserID)
+	if err != nil {
+		log.Error(err)
+		return model.User{}, err
+	}
+	if user == nil {
+		return model.User{}, ErrNilUser
+	}
+	return *user, nil
+}
+
 func (u UserService) SaveUser(ctx context.Context, user *model.User) error {
 	log.Info("save user")
 	return dal.User.Save(ctx, user)
