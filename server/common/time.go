@@ -12,7 +12,7 @@ func MillisecondToSecond(millisecond string) (string, error) {
 	if err != nil {
 		return millisecond, err
 	}
-	secondStamp := time.UnixMilli(timeStamp).Second()
+	secondStamp := time.UnixMilli(timeStamp).Unix()
 	return strconv.FormatInt(int64(secondStamp), 10), nil
 }
 
@@ -22,6 +22,6 @@ func ExpandSecondTimeStamp(input string, duration time.Duration) string {
 	if err != nil {
 		return input
 	}
-	secondTime := time.Unix(timeStamp, 0).Add(duration).Second()
+	secondTime := time.Unix(timeStamp, 0).Add(duration).Unix()
 	return fmt.Sprintf("%d", secondTime)
 }

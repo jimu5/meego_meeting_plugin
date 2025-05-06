@@ -66,10 +66,10 @@ func (c CalendarAPI) SearchCalendarEvents(ctx context.Context, calendarID, query
 			Query(queryWord).
 			Filter(&larkcalendar.EventSearchFilter{
 				StartTime: &larkcalendar.TimeInfo{
-					Timestamp: GetPtr(fmt.Sprintf("%d", time.Now().Add(-90*24*time.Hour).Second())),
+					Timestamp: GetPtr(fmt.Sprintf("%d", time.Now().Add(-90*24*time.Hour).Unix())),
 				},
 				EndTime: &larkcalendar.TimeInfo{
-					Timestamp: GetPtr(fmt.Sprintf("%d", time.Now().Add(90*24*time.Hour).Second())),
+					Timestamp: GetPtr(fmt.Sprintf("%d", time.Now().Add(90*24*time.Hour).Unix())),
 				},
 			}).
 			Build()).
