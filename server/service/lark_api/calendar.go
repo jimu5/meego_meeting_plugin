@@ -104,7 +104,7 @@ func (c CalendarAPI) SearchCalendarEventsByTimeAndChatIDs(ctx context.Context, c
 				EndTime(larkcalendar.NewTimeInfoBuilder().
 					Timestamp(endTimeStamp).
 					Build()).
-				ChatIds(chatIDs).
+				//ChatIds(chatIDs).
 				Build()).
 			Build()).
 		Build()
