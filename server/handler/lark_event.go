@@ -95,6 +95,7 @@ func handleChatCalendarMessage(ctx context.Context, eventBody *larkim.P2MessageR
 	}
 	calendarContentInfo := calendarContent{}
 	err = json.Unmarshal([]byte(content), &calendarContentInfo)
+	log.Infof("[handleChatCalendarMessage] event content info: %s", content)
 	if err != nil {
 		log.Errorf("[handleChatCalendarMessage] Unmarshal err, content: %s, err: %v", content, err)
 		return err
