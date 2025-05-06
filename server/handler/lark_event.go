@@ -110,6 +110,10 @@ func handleChatCalendarMessage(ctx context.Context, eventBody *larkim.P2MessageR
 		log.Errorf("[handleChatCalendarMessage] MillisecondToSecond EndTime err, err: %v, sourceVal: %s", err, calendarContentInfo.EndTime)
 		return err
 	}
+	startTime = common.ExpandSecondTimeStamp(startTime, -time.Minute)
+	endTime = common.ExpandSecondTimeStamp(endTime, time.Minute)
+	log.Infof("[handleChatCalendarMessage] start search calendar, meegoUserKey: %s, startTime: %s, endTime: %s, queryWord: %s",
+		meegoUserKey, startTime, endTime, calendarContentInfo.Summary)
 	var calendars *lark_api.SearchCalendarEventRespData
 	// 这里可能有延迟, 等待 5 秒重试, 最多重试3次
 	err = retry.Do(func() error {
@@ -125,7 +129,7 @@ func handleChatCalendarMessage(ctx context.Context, eventBody *larkim.P2MessageR
 		return nil
 	}, retry.Delay(time.Second*5), retry.Attempts(3), retry.DelayType(retry.FixedDelay))
 	if err != nil && len(calendars.Items) == 0 {
-		log.Errorf("[handleChatCalendarMessage] err get event, err: %v", err)
+		log.Errorf("[handleChatCalendarMessage] err get event, item len: %d, err: %v,", len(calendars.Items), err)
 		return err
 	}
 	// 目前支取用第一个

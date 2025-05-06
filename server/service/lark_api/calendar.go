@@ -100,11 +100,9 @@ func (c CalendarAPI) SearchCalendarEventsByTimeAndChatIDs(ctx context.Context, c
 			Filter(larkcalendar.NewEventSearchFilterBuilder().
 				StartTime(larkcalendar.NewTimeInfoBuilder().
 					Timestamp(startTimeStamp).
-					Timezone(`Asia/Shanghai`).
 					Build()).
 				EndTime(larkcalendar.NewTimeInfoBuilder().
 					Timestamp(endTimeStamp).
-					Timezone(`Asia/Shanghai`).
 					Build()).
 				ChatIds(chatIDs).
 				Build()).
