@@ -53,6 +53,7 @@ const BindSchedule = ({ disabled, SDKReady }: IBindSchedule) => {
   };
 
   const [loading, setLoading] = useState(false);
+  const [bindLoading, setBindLoading] = useState(false)
   const [enable, setEnbale] = useState(false);
   const optionList: CalendarItem[] = useMemo(() => [], []);
   const [list, setList] = useState<CalendarItem[]>(optionList);
@@ -123,12 +124,15 @@ const BindSchedule = ({ disabled, SDKReady }: IBindSchedule) => {
     if(!store.userId) {
       return;
     }
+    setBindLoading(true)
     getAutoBindMeetingsStatus({
       project_key: store?.projectId,
       work_item_type_key: store?.workItemTypeKey,
       work_item_id: store?.workItemId,
     }, store.userId).then(res => {
       setEnbale(res.enable);
+    }).finally(() => {
+      setBindLoading(false)
     });
   }, [store.userId, store?.workItemId,]);
 
@@ -171,6 +175,7 @@ const BindSchedule = ({ disabled, SDKReady }: IBindSchedule) => {
     if(!store.userId) {
       return;
     }
+    setBindLoading(true)
     autoBindMeetings({
       enable: _enable,
       work_item_id: store?.workItemId,
@@ -180,6 +185,8 @@ const BindSchedule = ({ disabled, SDKReady }: IBindSchedule) => {
       setEnbale(_enable);
     }).catch(err => {
       console.error('auto bind err', err);
+    }).finally( () => {
+      setBindLoading(false)
     });
   }
   return (
@@ -213,6 +220,7 @@ const BindSchedule = ({ disabled, SDKReady }: IBindSchedule) => {
           className='switch'
           disabled={disabled}
           checked={enable}
+          loading={bindLoading}
           size="small"
           onChange={autoBindHandler}
           aria-label="自动关联日程"
