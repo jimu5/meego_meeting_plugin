@@ -13,7 +13,7 @@ import (
 	"meego_meeting_plugin/config"
 	"meego_meeting_plugin/model"
 
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

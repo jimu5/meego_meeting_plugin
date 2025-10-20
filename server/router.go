@@ -33,6 +33,7 @@ func SetupAPIRouter(app *fiber.App) {
 
 		// 事件
 		larkAPI.Post("/webhook/event", NewEventHandlerFunc(handler.LarkEventHandler))
+		MeegoRoute.Post("/webhook/event", handler.MeegoEventHandler)
 	}
 
 }

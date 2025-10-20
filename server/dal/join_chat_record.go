@@ -2,9 +2,13 @@ package dal
 
 import (
 	"context"
-	"github.com/gofiber/fiber/v2/log"
-	"gorm.io/gorm/clause"
+	"errors"
+
 	"meego_meeting_plugin/model"
+
+	"github.com/gofiber/fiber/v2/log"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type JoinChatRecordDao struct {
@@ -45,6 +49,9 @@ func (j JoinChatRecordDao) FirstByWorkItemID(ctx context.Context, workItemID int
 	result := model.JoinChatRecord{}
 	err := db.WithContext(ctx).Where("work_item_id = ?", workItemID).First(&result).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		log.Error(err)
 		return nil, err
 	}

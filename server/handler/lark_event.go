@@ -7,8 +7,10 @@ import (
 
 	"meego_meeting_plugin/common"
 	"meego_meeting_plugin/dal"
+	"meego_meeting_plugin/model"
 	"meego_meeting_plugin/service"
 	"meego_meeting_plugin/service/lark_api"
+	"meego_meeting_plugin/service/meego_api"
 
 	"github.com/avast/retry-go"
 	"github.com/gofiber/fiber/v2/log"
@@ -71,80 +73,17 @@ func handleChatCalendarMessage(ctx context.Context, eventBody *larkim.P2MessageR
 		// 没有启用
 		return nil
 	}
-	// 使用发消息人的信息来进行日程搜索
-	var larkUserKey string
+	// 获取发消息的人信息
+	var larkUserInfo *larkim.UserId
 	if eventBody.Sender != nil && eventBody.Sender.SenderId != nil {
-		larkUserKey = *eventBody.Sender.SenderId.UserId
+		larkUserInfo = eventBody.Sender.SenderId
 	}
-	// 获取 Lark 用户关联的 Meego 用户
-	var meegoUserKey string
-	if len(larkUserKey) != 0 {
-		larkUser, errU := service.User.GetUserInfoByLarkUserID(ctx, larkUserKey)
-		if errU != nil {
-			log.Warnf("cant find lark user related meego user, lark user id: %s", larkUserKey)
-		} else {
-			meegoUserKey = larkUser.MeegoUserKey
-		}
-	}
-
-	// 使用 record 的 userKey 和开始结束时间以及关键字来搜索日程
-	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(ctx, meegoUserKey)
+	err = handleMeetingBindByUserKey(ctx, content, larkUserInfo, record)
 	if err != nil {
-		log.Errorf("[handleChatCalendarMessage] GetUserInfoByMeegoUserKey err, userKey: %s, err: %v", userInfo, err)
-		return err
-	}
-	calendarContentInfo := calendarContent{}
-	err = json.Unmarshal([]byte(content), &calendarContentInfo)
-	log.Infof("[handleChatCalendarMessage] event content info: %s", content)
-	if err != nil {
-		log.Errorf("[handleChatCalendarMessage] Unmarshal err, content: %s, err: %v", content, err)
-		return err
-	}
-	// 需要把毫秒级时间戳处理成秒级, 两边的 range 再扩充一秒吧
-	startTime, err := common.MillisecondToSecond(calendarContentInfo.StartTime)
-	if err != nil {
-		log.Errorf("[handleChatCalendarMessage] MillisecondToSecond startTime err, err: %v, sourceVal: %s", err, calendarContentInfo.StartTime)
-		return err
-	}
-	endTime, err := common.MillisecondToSecond(calendarContentInfo.EndTime)
-	if err != nil {
-		log.Errorf("[handleChatCalendarMessage] MillisecondToSecond EndTime err, err: %v, sourceVal: %s", err, calendarContentInfo.EndTime)
-		return err
-	}
-	startTime = common.ExpandSecondTimeStamp(startTime, -time.Minute)
-	endTime = common.ExpandSecondTimeStamp(endTime, time.Minute)
-	log.Infof("[handleChatCalendarMessage] start search calendar, meegoUserKey: %s, startTime: %s, endTime: %s, queryWord: %s",
-		meegoUserKey, startTime, endTime, calendarContentInfo.Summary)
-	var calendars *lark_api.SearchCalendarEventRespData
-	// 这里可能有延迟, 等待 5 秒重试, 最多重试3次
-	err = retry.Do(func() error {
-		calendars, err = service.Lark.SearchCalendarByTimeAndChatIDs(ctx, calendarContentInfo.Summary, startTime, endTime, []string{chatID}, userInfo.LarkUserAccessToken)
-		if err != nil || calendars == nil {
-			log.Errorf("[handleChatCalendarMessage] err handle, err: %v, calendars: %v", err, calendars)
-			return err
-		}
-		if len(calendars.Items) == 0 {
-			log.Warnf("[handleChatCalendarMessage] not search any calendars ")
-			return ErrEmptyCalendarSearch
-		}
+		log.Errorf("[handleChatCalendarMessage] handleMeetingBindByUserKey err, err: %v", err)
 		return nil
-	}, retry.Delay(time.Second*5), retry.Attempts(3), retry.DelayType(retry.FixedDelay))
-	if err != nil && len(calendars.Items) == 0 {
-		log.Errorf("[handleChatCalendarMessage] err get event, item len: %d, err: %v,", len(calendars.Items), err)
-		return err
 	}
-	// 目前支取用第一个
-	event := calendars.Items[0]
-	err = service.Plugin.BindCalendar(ctx, service.BindCalendarParam{
-		ProjectKey:      record.ProjectKey,
-		WorkItemTypeKey: record.WorkItemTypeKey,
-		WorkItemID:      record.WorkItemID,
-		CalendarEventID: getPointerInfo(event.EventId),
-	}, userInfo.LarkUserAccessToken, meegoUserKey)
-	if err != nil {
-		log.Errorf("[handleChatCalendarMessage] bind err, err: %v", err)
-		return err
-	}
+	// 目前没法使用应用身份进行日程绑定，应用身份获取用户主日历上的日程时，会默认没有权限
 	log.Infof("[handleChatCalendarMessage] source event info: %s", larkcore.Prettify(eventBody))
 	return nil
 }
@@ -165,7 +104,7 @@ func handleAllMeetingStarted(ctx context.Context, eventBody *larkvc.P2MeetingAll
 		return nil
 	}
 	// 3. 获取绑定的用户 token
-	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(ctx, bind.UpdateBy)
+	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(ctx, bind.UpdateBy, true)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -201,7 +140,7 @@ func handleAllMeetingEnd(ctx context.Context, eventBody *larkvc.P2MeetingAllMeet
 		return nil
 	}
 	// 3. 获取绑定的用户 token
-	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(ctx, bind.UpdateBy)
+	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(ctx, bind.UpdateBy, true)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -223,5 +162,108 @@ func handleAllMeetingEnd(ctx context.Context, eventBody *larkvc.P2MeetingAllMeet
 		log.Infof("[handleAllMeetingEnd] start RetryRefreshMeetingRecordTask")
 		service.Plugin.RetryRefreshMeetingRecordTask(ctx, []string{meeting.MeetingID}, userInfo.LarkUserAccessToken)
 	}()
+	return nil
+}
+
+// 使用用户身份进行绑定
+func handleMeetingBindByUserKey(ctx context.Context, content string, larkUserInfo *larkim.UserId, record *model.JoinChatRecord) error {
+	if larkUserInfo == nil {
+		log.Warnf("lark user info is nil")
+		return nil
+	}
+
+	var larkUserKey string
+	if larkUserInfo.UserId != nil {
+		larkUserKey = *larkUserInfo.UserId
+	}
+
+	// 获取 Lark 用户关联的 Meego 用户
+	var meegoUserKey string
+	if len(larkUserKey) != 0 {
+		larkUser, errU := service.User.GetUserInfoByLarkUserID(ctx, larkUserKey)
+		if errU != nil {
+			log.Infof("cant find lark user related meego user, lark user id: %s", larkUserKey)
+			// 尝试使用 api 来获取用户
+			var larkUnionID string
+			if larkUserInfo.UnionId != nil {
+				larkUnionID = *larkUserInfo.UnionId
+			}
+			meegoUserInfos, err := meego_api.API.User.GetUserInfoByLarkUnionID(ctx, []string{larkUnionID})
+			if err != nil {
+				log.Errorf("[handleChatCalendarMessage] GetUserInfoByLarkUnionID err, unionID: %s, err: %v", larkUnionID, err)
+				return err
+			}
+			if len(meegoUserInfos) > 0 {
+				meegoUserKey = meegoUserInfos[0].UserKey
+			}
+
+		} else {
+			meegoUserKey = larkUser.MeegoUserKey
+		}
+	}
+
+	if len(meegoUserKey) == 0 {
+		log.Warnf("meego user key is empty, lark user key: %s", larkUserKey)
+		return nil
+	}
+
+	// 使用 record 的 userKey 和开始结束时间以及关键字来搜索日程
+	userInfo, err := service.Plugin.GetUserInfoByMeegoUserKey(ctx, meegoUserKey, true)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] GetUserInfoByMeegoUserKey err, userKey: %s, err: %v", userInfo, err)
+		return err
+	}
+	calendarContentInfo := calendarContent{}
+	err = json.Unmarshal([]byte(content), &calendarContentInfo)
+	log.Infof("[handleChatCalendarMessage] event content info: %s", content)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] Unmarshal err, content: %s, err: %v", content, err)
+		return err
+	}
+	// 需要把毫秒级时间戳处理成秒级, 两边的 range 再扩充一秒吧
+	startTime, err := common.MillisecondToSecond(calendarContentInfo.StartTime)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] MillisecondToSecond startTime err, err: %v, sourceVal: %s", err, calendarContentInfo.StartTime)
+		return err
+	}
+	endTime, err := common.MillisecondToSecond(calendarContentInfo.EndTime)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] MillisecondToSecond EndTime err, err: %v, sourceVal: %s", err, calendarContentInfo.EndTime)
+		return err
+	}
+	startTime = common.ExpandSecondTimeStamp(startTime, -time.Minute)
+	endTime = common.ExpandSecondTimeStamp(endTime, time.Minute)
+	log.Infof("[handleChatCalendarMessage] start search calendar, meegoUserKey: %s, startTime: %s, endTime: %s, queryWord: %s",
+		meegoUserKey, startTime, endTime, calendarContentInfo.Summary)
+	var calendars *lark_api.SearchCalendarEventRespData
+	// 这里可能有延迟, 等待 5 秒重试, 最多重试3次
+	err = retry.Do(func() error {
+		calendars, err = service.Lark.SearchCalendarByTimeAndChatIDs(ctx, calendarContentInfo.Summary, startTime, endTime, userInfo.LarkUserAccessToken)
+		if err != nil || calendars == nil {
+			log.Errorf("[handleChatCalendarMessage] err handle, err: %v, calendars: %v", err, calendars)
+			return err
+		}
+		if len(calendars.Items) == 0 {
+			log.Warnf("[handleChatCalendarMessage] not search any calendars ")
+			return ErrEmptyCalendarSearch
+		}
+		return nil
+	}, retry.Delay(time.Second*5), retry.Attempts(3), retry.DelayType(retry.FixedDelay))
+	if err != nil && len(calendars.Items) == 0 {
+		log.Errorf("[handleChatCalendarMessage] err get event, item len: %d, err: %v,", len(calendars.Items), err)
+		return err
+	}
+	// 目前支取用第一个
+	event := calendars.Items[0]
+	err = service.Plugin.BindCalendar(ctx, service.BindCalendarParam{
+		ProjectKey:      record.ProjectKey,
+		WorkItemTypeKey: record.WorkItemTypeKey,
+		WorkItemID:      record.WorkItemID,
+		CalendarEventID: getPointerInfo(event.EventId),
+	}, userInfo.LarkUserAccessToken, meegoUserKey)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] bind err, err: %v", err)
+		return err
+	}
 	return nil
 }

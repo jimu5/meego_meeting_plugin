@@ -2,6 +2,7 @@ package meego_api
 
 import (
 	"context"
+
 	"github.com/gofiber/fiber/v2/log"
 	sdk "github.com/larksuite/project-oapi-sdk-golang"
 	"github.com/larksuite/project-oapi-sdk-golang/service/user"
@@ -20,6 +21,20 @@ func NewUserAPI(c *sdk.Client) UserAPI {
 // TODO: 以后需要处理下分页, 最大 100 个 userKey
 func (u UserAPI) GetUserInfo(ctx context.Context, userKeys []string) ([]*user.UserBasicInfo, error) {
 	req := user.NewQueryUserDetailReqBuilder().UserKeys(userKeys).Build()
+	resp, err := u.client.User.QueryUserDetail(ctx, req)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	if !resp.Success() {
+		log.Error(resp.Code(), resp.ErrMsg, resp.RequestId())
+		return nil, ErrRespNotSuccess
+	}
+	return resp.Data, nil
+}
+
+func (u UserAPI) GetUserInfoByLarkUnionID(ctx context.Context, unionIDs []string) ([]*user.UserBasicInfo, error) {
+	req := user.NewQueryUserDetailReqBuilder().OutIDs(unionIDs).Build()
 	resp, err := u.client.User.QueryUserDetail(ctx, req)
 	if err != nil {
 		log.Error(err)

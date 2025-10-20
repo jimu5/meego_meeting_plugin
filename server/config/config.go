@@ -13,6 +13,8 @@ func InitConfig() {
 	larkAppSecret := flag.String("lark_app_secret", "", "lark app_secret")
 	meegoPluginID := flag.String("meego_plugin_id", "", "meego_plugin_id")
 	meegoPluginSecret := flag.String("meego_plugin_secret", "", "meego_plugin_secret")
+	meegoEventCallbackToken := flag.String("meego_event_callback_token", "", "meego_event_callback_token")
+	domainURL := flag.String("domain_url", "", "domain_url")
 
 	flag.Parse()
 
@@ -27,6 +29,12 @@ func InitConfig() {
 	}
 	if meegoPluginSecret != nil && len(*meegoPluginSecret) != 0 {
 		Config.APPConfig.MeegoPluginSecret = *meegoPluginSecret
+	}
+	if meegoEventCallbackToken != nil && len(*meegoEventCallbackToken) != 0 {
+		Config.APPConfig.MeegoEventCallbackToken = *meegoEventCallbackToken
+	}
+	if domainURL != nil && len(*domainURL) != 0 {
+		Config.APPConfig.DomainURL = *domainURL
 	}
 
 	if err := Config.Check(); err != nil {

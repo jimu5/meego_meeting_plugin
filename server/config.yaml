@@ -12,3 +12,5 @@ app_config:
   # Meego 开放平台配置
   meego_plugin_id: meego_plugin_id # 飞书项目插件凭证 app_id
   meego_plugin_secret: meego_plugin_secret # 飞书项目插件凭证 app_secret
+  meego_event_callback_token: meego_event_callback_token # 飞书项目插件事件回调凭证 token
+  domain_url: https://test.com # 后端插件服务部署的域名链接

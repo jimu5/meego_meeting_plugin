@@ -55,6 +55,42 @@ func (c CalendarAPI) GetPrimaryCalendars(ctx context.Context, userAccessToken st
 	return result, nil
 }
 
+// 批量获取主日程 id, 用于使用应用身份来获取
+// userIDType 可选值: open_id, union_id, user_id
+func (c CalendarAPI) GetPrimaryCalendarsByLarkUserID(ctx context.Context, userIDType string, larkUserIDs []string) ([]*UserCalendar, error) {
+	// 发起请求
+	req := larkcalendar.NewPrimarysCalendarReqBuilder().
+		UserIdType(userIDType).
+		Body(larkcalendar.NewPrimarysCalendarReqBodyBuilder().
+			UserIds(larkUserIDs).
+			Build()).
+		Build()
+
+	resp, err := c.client.Calendar.V4.Calendar.Primarys(ctx, req)
+	if err != nil {
+		log.Errorf("[CalendarAPI] GetPrimaryCalendarIDs, err: %v", err)
+		return nil, err
+	}
+
+	if !resp.Success() {
+		log.Errorf("[CalendarAPI] GetPrimaryCalendarIDs resp not success, code: %v, msg: %v, LOGID: %s", resp.Code, resp.Msg, resp.RequestId())
+		return nil, resp.CodeError
+	}
+	if resp.Data == nil || resp.Data.Calendars == nil {
+		return nil, NewErrResponseNotSuccess(resp.Code, resp.Msg)
+	}
+	result := make([]*UserCalendar, 0, len(resp.Data.Calendars))
+	for _, c := range resp.Data.Calendars {
+		if c.Calendar != nil {
+			if c.Calendar.CalendarId == nil {
+				continue
+			}
+			result = append(result, (*UserCalendar)(c))
+		}
+	}
+	return result, nil
+}
+
 // 搜索日程
 func (c CalendarAPI) SearchCalendarEvents(ctx context.Context, calendarID, queryWord, userAccessToken string,
 	pageParam PageParam) (*SearchCalendarEventRespData, error) {
@@ -91,7 +127,7 @@ func (c CalendarAPI) SearchCalendarEvents(ctx context.Context, calendarID, query
 
 // 通过时间和群搜索
 func (c CalendarAPI) SearchCalendarEventsByTimeAndChatIDs(ctx context.Context, calendarID, queryWord string,
-	startTimeStamp, endTimeStamp string, chatIDs []string, userAccessToken string) (*SearchCalendarEventRespData, error) {
+	startTimeStamp, endTimeStamp string, userAccessToken string) (*SearchCalendarEventRespData, error) {
 	log.Infof("[SearchCalendarEventsByTimeAndChatIDs] calendar ID: %s, queryWord: %s", calendarID, queryWord)
 	req := larkcalendar.NewSearchCalendarEventReqBuilder().
 		CalendarId(calendarID).
@@ -104,12 +140,19 @@ func (c CalendarAPI) SearchCalendarEventsByTimeAndChatIDs(ctx context.Context, c
 				EndTime(larkcalendar.NewTimeInfoBuilder().
 					Timestamp(endTimeStamp).
 					Build()).
-				//ChatIds(chatIDs).
 				Build()).
 			Build()).
 		Build()
 
-	resp, err := c.client.Calendar.CalendarEvent.Search(ctx, req, larkcore.WithUserAccessToken(userAccessToken))
+	var (
+		resp *larkcalendar.SearchCalendarEventResp
+		err  error
+	)
+	if len(userAccessToken) != 0 {
+		resp, err = c.client.Calendar.CalendarEvent.Search(ctx, req, larkcore.WithUserAccessToken(userAccessToken))
+	} else {
+		resp, err = c.client.Calendar.CalendarEvent.Search(ctx, req)
+	}
 	if err != nil {
 		log.Errorf("[CalendarAPI] SearchCalendarEventsByTimeAndChatIDs, err: %v", err)
 		return nil, err

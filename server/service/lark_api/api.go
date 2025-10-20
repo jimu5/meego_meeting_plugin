@@ -6,6 +6,7 @@ type LarkAPI struct {
 	CalendarAPI CalendarAPI
 	VChatAPI    VChatAPI
 	AuthenAPI   AuthenAPI
+	IMAPI       IMAPI
 }
 
 type LarkClient struct {
@@ -20,5 +21,6 @@ func NewLarkAPI() LarkAPI {
 		CalendarAPI: NewCalendarAPI(client),
 		VChatAPI:    NewVchatAPI(client),
 		AuthenAPI:   NewAuthenAPI(client),
+		IMAPI:       NewIMAPI(client),
 	}
 }

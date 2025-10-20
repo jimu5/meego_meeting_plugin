@@ -43,3 +43,9 @@ type (
 	GetMeetingRecordingRespData larkvc.GetMeetingRecordingRespData
 	Meeting                     larkvc.Meeting
 )
+
+const (
+	LarkUserIDTypeOpenID  = "open_id"
+	LarkUserIDTypeUnionID = "union_id"
+	LarkUserIDTypeUserID  = "user_id"
+)

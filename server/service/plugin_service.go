@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -90,10 +92,19 @@ func (p PluginService) BindCalendar(ctx context.Context, param BindCalendarParam
 }
 
 // 获取或刷新 user
-func (p PluginService) GetUserInfoByMeegoUserKey(ctx context.Context, meegoUserKey string) (model.User, error) {
+func (p PluginService) GetUserInfoByMeegoUserKey(ctx context.Context, meegoUserKey string, sendACLMsg bool) (model.User, error) {
 	userKey := meegoUserKey
 	userInfo, err := User.GetUserInfoByMeegoUserKey(ctx, userKey)
 	if err != nil {
+		// 没有找到对应的用户, 尝试引导用户去给应用授权
+		// TODO: 重新授权之后应当重新执行任务
+		if sendACLMsg {
+			err = p.SendMsgForACL(ctx, meegoUserKey)
+			if err != nil {
+				log.Errorf("SendMsgForACL err: %v", err)
+				return model.User{}, err
+			}
+		}
 		return model.User{}, err
 	}
 	refreshTag := false
@@ -125,6 +136,7 @@ func (p PluginService) GetUserInfoByMeegoUserKey(ctx context.Context, meegoUserK
 			return model.User{}, err
 		}
 	}
+
 	return userInfo, nil
 }
 
@@ -156,7 +168,7 @@ func (p PluginService) RefreshBind(ctx context.Context, workItemID int64) error 
 			continue
 		}
 		// 取用最后一个更新的人
-		userInfo, errG := p.GetUserInfoByMeegoUserKey(ctx, bind.UpdateBy)
+		userInfo, errG := p.GetUserInfoByMeegoUserKey(ctx, bind.UpdateBy, true)
 		if errG != nil {
 			log.Errorf("[RefreshBind] GetUserInfo err, err: %v, userKey: %s", bind.UpdateBy)
 			continue
@@ -367,4 +379,40 @@ func (p PluginService) GetUserInfoByBinds(ctx context.Context, binds []*model.Ca
 		}
 	}
 	return result, nil
+}
+
+// 给用户发送消息尝试让对应用户给当前应用授权
+func (p PluginService) SendMsgForACL(ctx context.Context, meegoUserKey string) error {
+	// 查询 lark 用户信息
+	meegoUsers, err := meego_api.API.User.GetUserInfo(ctx, []string{meegoUserKey})
+	if err != nil {
+		log.Errorf("[PluginService.SendMsgForACL] GetUserInfoByMeegoUserKey err, meegoUserKey: %s, err: %v", meegoUserKey, err)
+		return err
+	}
+
+	if len(meegoUsers) == 0 {
+		log.Infof("[PluginService.SendMsgForACL] GetUserInfoByMeegoUserKey, meegoUserKey: %s, not found", meegoUserKey)
+		return nil
+	}
+	// 私聊发送消息
+	larkUnionID := meegoUsers[0].OutID
+
+	_, err = lark_api.API.IMAPI.CreateTextMessage(ctx, lark_api.LarkUserIDTypeUnionID, larkUnionID, p.genACLMessage(meegoUserKey))
+	if err != nil {
+		log.Errorf("[PluginService.SendMsgForACL] CreateTextMessage err, meegoUserKey: %s, err: %v", meegoUserKey, err)
+		return err
+	}
+	return nil
+}
+
+func (p PluginService) genACLMessage(meegoUserKey string) string {
+	redirectUrl := fmt.Sprintf("%s/api/v1/meego/lark/auth", config.GetAPPConfig().DomainURL)
+	stateUrl := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("https://project.feishu.cn?meego_user_key=%s", meegoUserKey)))
+	aclUrl := fmt.Sprintf("%s?redirect_uri=%s&app_id=%s&state=%s",
+		LarkAuthURL,
+		redirectUrl,
+		config.GetAPPConfig().LarkAppID,
+		stateUrl)
+	text := fmt.Sprintf(`您需要给当前应用授权, 才能正常使用「会议管理」插件相关功能，<b>点击链接进行应用授权</b>：[授权链接](%s)`, aclUrl)
+	return text
 }

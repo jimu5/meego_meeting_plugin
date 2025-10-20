@@ -7,3 +7,5 @@ import (
 func NewErrResponseNotSuccess(code int, msg string) error {
 	return fmt.Errorf("response is not success, code: %d, msg: %s", code, msg)
 }
+
+var ErrInvalidResponse = fmt.Errorf("response is nil")

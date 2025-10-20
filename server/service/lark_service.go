@@ -75,7 +75,7 @@ func (l LarkService) SearchCalendar(ctx context.Context, queryWord, userAccessTo
 }
 
 func (l LarkService) SearchCalendarByTimeAndChatIDs(ctx context.Context, queryWord string,
-	startTimeStamp, endTimeStamp string, chatIDs []string, userAccessToken string) (
+	startTimeStamp, endTimeStamp string, userAccessToken string) (
 	*lark_api.SearchCalendarEventRespData, error) {
 	calendars, err := lark_api.API.CalendarAPI.GetPrimaryCalendars(ctx, userAccessToken)
 	if err != nil {
@@ -90,7 +90,7 @@ func (l LarkService) SearchCalendarByTimeAndChatIDs(ctx context.Context, queryWo
 		return nil, ErrPrimaryCalendar
 	}
 	searchRes, err := lark_api.API.CalendarAPI.SearchCalendarEventsByTimeAndChatIDs(ctx, calendarID, queryWord, startTimeStamp, endTimeStamp,
-		chatIDs, userAccessToken)
+		userAccessToken)
 	if err != nil {
 		log.Errorf("[LarkService] SearchCalendar err: %v", err)
 		return nil, err

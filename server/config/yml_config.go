@@ -46,8 +46,10 @@ type APPConfig struct {
 	LarkAppSecret string `yaml:"lark_app_secret"`
 
 	// Meego 开放平台配置
-	MeegoPluginID     string `yaml:"meego_plugin_id"`
-	MeegoPluginSecret string `yaml:"meego_plugin_secret"`
+	MeegoPluginID           string `yaml:"meego_plugin_id"`
+	MeegoPluginSecret       string `yaml:"meego_plugin_secret"`
+	MeegoEventCallbackToken string `yaml:"meego_event_callback_token"`
+	DomainURL               string `yaml:"domain_url"`
 }
 
 func (a *APPConfig) Check() error {
@@ -60,6 +62,12 @@ func (a *APPConfig) Check() error {
 		return fmt.Errorf("meego_plugin_id is empty")
 	case len(a.MeegoPluginSecret) == 0:
 		return fmt.Errorf("meego_plugin_secret is empty")
+	case len(a.MeegoEventCallbackToken) == 0:
+		return fmt.Errorf("meego_event_callback_token is empty")
+	case len(a.DomainURL) == 0:
+		return fmt.Errorf("domain_url is empty")
+	default:
+
 	}
 
 	return nil

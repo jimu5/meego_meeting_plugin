@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
@@ -14,7 +15,8 @@ func NewFiberAPP() *fiber.App {
 		BodyLimit:   1024 * 1024 * 1024,
 		ProxyHeader: "X-Real-IP",
 	})
-	app.Use(logger.New())
+	app.Use(logger.New(logger.ConfigDefault))
+	log.SetLevel(log.LevelInfo)
 	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
 	app.Use(cors.New())
 
