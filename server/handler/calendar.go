@@ -9,6 +9,7 @@ import (
 	"meego_meeting_plugin/model"
 	"meego_meeting_plugin/service"
 	"meego_meeting_plugin/service/lark_api"
+	"meego_meeting_plugin/util"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
@@ -127,7 +128,7 @@ func UnBindCalendarEventWithWorkItem(c *fiber.Ctx) error {
 	}
 	// 2. 修改记录为未绑定状态
 	needUnbind := false
-	if len(getPointerInfo(bind.CalendarEventData.Recurrence)) == 0 || len(param.MeetingID) == 0 {
+	if len(util.GetPointerInfo(bind.CalendarEventData.Recurrence)) == 0 || len(param.MeetingID) == 0 {
 		// 非循环的直接解绑
 		needUnbind = true
 	} else {
@@ -151,13 +152,13 @@ func UnBindCalendarEventWithWorkItem(c *fiber.Ctx) error {
 		if currentMeeting != nil {
 			unbindVCMeetings = append(unbindVCMeetings, currentMeeting)
 			withAfter := param.WithAfterRecurringEvent
-			curStartTime, errP := strconv.ParseInt(getPointerInfo(currentMeeting.MeetingData.StartTime), 10, 64)
+			curStartTime, errP := strconv.ParseInt(util.GetPointerInfo(currentMeeting.MeetingData.StartTime), 10, 64)
 			if errP == nil && withAfter {
 				for _, m := range meetings {
 					if m == nil {
 						continue
 					}
-					mStartTime, errM := strconv.ParseInt(getPointerInfo(m.MeetingData.StartTime), 10, 64)
+					mStartTime, errM := strconv.ParseInt(util.GetPointerInfo(m.MeetingData.StartTime), 10, 64)
 					if errM != nil {
 						continue
 					}
@@ -251,21 +252,21 @@ type WorkItemMeeting struct {
 
 func (m *WorkItemMeeting) ApplyModelMeeting(meeting *model.VCMeeting) {
 	m.MeetingID = meeting.MeetingID
-	m.MeetingTopic = getPointerInfo(meeting.MeetingData.Topic)
-	m.MeetingHostUser = getPointerInfo(meeting.MeetingData.HostUser)
+	m.MeetingTopic = util.GetPointerInfo(meeting.MeetingData.Topic)
+	m.MeetingHostUser = util.GetPointerInfo(meeting.MeetingData.HostUser)
 	m.MeetingTime = MeetingTime{
-		CreateTime: getPointerInfo(meeting.MeetingData.CreateTime),
-		StartTime:  getPointerInfo(meeting.MeetingData.StartTime),
-		EndTime:    getPointerInfo(meeting.MeetingData.EndTime),
+		CreateTime: util.GetPointerInfo(meeting.MeetingData.CreateTime),
+		StartTime:  util.GetPointerInfo(meeting.MeetingData.StartTime),
+		EndTime:    util.GetPointerInfo(meeting.MeetingData.EndTime),
 	}
-	m.MeetingRecordURL = getPointerInfo(meeting.RecordInfo.Url)
-	m.MeetingMinuteURL = getPointerInfo(meeting.RecordInfo.Url)
-	m.MeetingStatus = getPointerInfo(meeting.MeetingData.Status)
-	m.MeetingParticipantCount = getPointerInfo(meeting.MeetingData.ParticipantCount)
-	m.MeetingParticipantCountAccumulated = getPointerInfo(meeting.MeetingData.ParticipantCountAccumulated)
+	m.MeetingRecordURL = util.GetPointerInfo(meeting.RecordInfo.Url)
+	m.MeetingMinuteURL = util.GetPointerInfo(meeting.RecordInfo.Url)
+	m.MeetingStatus = util.GetPointerInfo(meeting.MeetingData.Status)
+	m.MeetingParticipantCount = util.GetPointerInfo(meeting.MeetingData.ParticipantCount)
+	m.MeetingParticipantCountAccumulated = util.GetPointerInfo(meeting.MeetingData.ParticipantCountAccumulated)
 	// 如果日程没有名字, 用会议的名
 	if len(m.CalendarEventName) == 0 {
-		m.CalendarEventName = getPointerInfo(meeting.MeetingData.Topic)
+		m.CalendarEventName = util.GetPointerInfo(meeting.MeetingData.Topic)
 	}
 }
 
@@ -386,7 +387,7 @@ func sortBindsByCalendarEventStartTime(binds []*model.CalendarBind) {
 		if jStartTime == nil {
 			jStartTime = binds[j].CalendarEventData.GetStartTime()
 		}
-		return getPointerInfo(iStartTime).Unix() > getPointerInfo(jStartTime).Unix()
+		return util.GetPointerInfo(iStartTime).Unix() > util.GetPointerInfo(jStartTime).Unix()
 	})
 }
 
@@ -405,11 +406,11 @@ func genWorkItemMeetingByBind(bind *model.CalendarBind, userInfo *user.UserBasic
 		CalendarID:              bind.CalendarID,
 		CalendarEventID:         bind.CalendarEventID,
 		BindOperator:            bind.UpdateBy,
-		CalendarEventName:       getPointerInfo(calendarEventData.Summary),
-		CalendarEventDesc:       getPointerInfo(calendarEventData.Description),
-		CalendarEventAppLink:    getPointerInfo(calendarEventData.AppLink),
+		CalendarEventName:       util.GetPointerInfo(calendarEventData.Summary),
+		CalendarEventDesc:       util.GetPointerInfo(calendarEventData.Description),
+		CalendarEventAppLink:    util.GetPointerInfo(calendarEventData.AppLink),
 		CalendarEventOrganizer:  calendarEventData.EventOrganizer,
-		CalendarEventRecurrence: getPointerInfo(calendarEventData.Recurrence),
+		CalendarEventRecurrence: util.GetPointerInfo(calendarEventData.Recurrence),
 		BindOperatorInfo:        genUserInfo(userInfo),
 	}
 }

@@ -9,17 +9,25 @@ import (
 	"sync"
 	"time"
 
+	"meego_meeting_plugin/common"
 	"meego_meeting_plugin/config"
 	"meego_meeting_plugin/dal"
 	"meego_meeting_plugin/model"
 	"meego_meeting_plugin/service/lark_api"
 	"meego_meeting_plugin/service/meego_api"
+	"meego_meeting_plugin/util"
 
 	"github.com/avast/retry-go"
 	"github.com/gofiber/fiber/v2/log"
+	larkim "github.com/larksuite/oapi-sdk-go/v3/service/im/v1"
 	"github.com/larksuite/project-oapi-sdk-golang/service/user"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
+)
+
+const (
+	TaskTypeBindCalendar               = "BindCalendar"
+	TaskTypeHandleMeetingBindByUserKey = "HandleMeetingBindByUserKey"
 )
 
 var Plugin = NewPluginService()
@@ -164,23 +172,39 @@ func (p PluginService) RefreshBind(ctx context.Context, workItemID int64) error 
 	// 对每个都重新进行绑定
 	var wg sync.WaitGroup
 	for _, bind := range binds {
-		if bind.Bind == false {
+		if !bind.Bind {
 			continue
 		}
 		// 取用最后一个更新的人
-		userInfo, errG := p.GetUserInfoByMeegoUserKey(ctx, bind.UpdateBy, true)
-		if errG != nil {
-			log.Errorf("[RefreshBind] GetUserInfo err, err: %v, userKey: %s", bind.UpdateBy)
-			continue
-		}
-
-		wg.Add(1)
-
 		param := BindCalendarParam{
 			ProjectKey:      bind.ProjectKey,
 			WorkItemTypeKey: bind.WorkItemTypeKey,
 			WorkItemID:      bind.WorkItemID,
 			CalendarEventID: bind.CalendarEventID,
+		}
+		userInfo, errG := p.GetUserInfoByMeegoUserKey(ctx, bind.UpdateBy, true)
+		if errG != nil {
+			if errors.Is(errG, ErrNilUser) {
+				log.Infof("user %s not authorized, creating pending task for refreshing bind", bind.UpdateBy)
+				payload, jsonErr := json.Marshal(param)
+				if jsonErr != nil {
+					log.Errorf("Failed to marshal BindCalendarParam for pending task: %v", jsonErr)
+					continue
+				}
+				task := &model.PendingTask{
+					MeegoUserKey: bind.UpdateBy,
+					TaskType:     TaskTypeBindCalendar,
+					Payload:      string(payload),
+					Status:       model.TaskStatusPending,
+					Remark:       "RefreshBind",
+				}
+				if createErr := dal.PendingTask.Create(ctx, task); createErr != nil {
+					log.Errorf("Failed to create pending task: %v", createErr)
+				}
+			} else {
+				log.Errorf("[RefreshBind] GetUserInfo err, err: %v, userKey: %s", bind.UpdateBy)
+			}
+			continue
 		}
 		go func() {
 			defer wg.Done()
@@ -405,6 +429,100 @@ func (p PluginService) SendMsgForACL(ctx context.Context, meegoUserKey string) e
 	return nil
 }
 
+type HandleMeetingBindByUserKeyParam struct {
+	Content      string                `json:"content"`
+	LarkUserInfo *larkim.UserId        `json:"lark_user_info"`
+	Record       *model.JoinChatRecord `json:"record"`
+}
+
+func (p PluginService) HandleMeetingBindByUserKey(ctx context.Context, param HandleMeetingBindByUserKeyParam) error {
+	if param.LarkUserInfo == nil {
+		log.Warnf("lark user info is nil")
+		return nil
+	}
+	larkUserInfo := param.LarkUserInfo
+	record := param.Record
+	content := param.Content
+
+	var larkUserKey string
+	if larkUserInfo.UserId != nil {
+		larkUserKey = *larkUserInfo.UserId
+	}
+
+	// 获取 Lark 用户关联的 Meego 用户
+	var meegoUserKey string
+	meegoUserKey, err := User.GetMeegoUserKeyByLarkUserInfo(ctx, *larkUserInfo)
+	if err != nil {
+		log.Errorf("[PluginService.HandleMeetingBindByUserKey] GetMeegoUserKeyByLarkUserInfo err, larkUserKey: %s, err: %v", larkUserKey, err)
+		return err
+	}
+
+	if len(meegoUserKey) == 0 {
+		log.Warnf("meego user key is empty, lark user key: %s", larkUserKey)
+		return nil
+	}
+
+	// 使用 record 的 userKey 和开始结束时间以及关键字来搜索日程
+	userInfo, err := p.GetUserInfoByMeegoUserKey(ctx, meegoUserKey, true)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] GetUserInfoByMeegoUserKey err, userKey: %s, err: %v", userInfo, err)
+		return err
+	}
+	calendarContentInfo := calendarContent{}
+	err = json.Unmarshal([]byte(content), &calendarContentInfo)
+	log.Infof("[handleChatCalendarMessage] event content info: %s", content)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] Unmarshal err, content: %s, err: %v", content, err)
+		return err
+	}
+	// 需要把毫秒级时间戳处理成秒级, 两边的 range 再扩充一秒吧
+	startTime, err := common.MillisecondToSecond(calendarContentInfo.StartTime)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] MillisecondToSecond startTime err, err: %v, sourceVal: %s", err, calendarContentInfo.StartTime)
+		return err
+	}
+	endTime, err := common.MillisecondToSecond(calendarContentInfo.EndTime)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] MillisecondToSecond EndTime err, err: %v, sourceVal: %s", err, calendarContentInfo.EndTime)
+		return err
+	}
+	startTime = common.ExpandSecondTimeStamp(startTime, -time.Minute)
+	endTime = common.ExpandSecondTimeStamp(endTime, time.Minute)
+	log.Infof("[handleChatCalendarMessage] start search calendar, meegoUserKey: %s, startTime: %s, endTime: %s, queryWord: %s",
+		meegoUserKey, startTime, endTime, calendarContentInfo.Summary)
+	var calendars *lark_api.SearchCalendarEventRespData
+	// 这里可能有延迟, 等待 5 秒重试, 最多重试3次
+	err = retry.Do(func() error {
+		calendars, err = Lark.SearchCalendarByTimeAndChatIDs(ctx, calendarContentInfo.Summary, startTime, endTime, userInfo.LarkUserAccessToken)
+		if err != nil || calendars == nil {
+			log.Errorf("[handleChatCalendarMessage] err handle, err: %v, calendars: %v", err, calendars)
+			return err
+		}
+		if len(calendars.Items) == 0 {
+			log.Warnf("[handleChatCalendarMessage] not search any calendars ")
+			return ErrEmptyCalendarSearch
+		}
+		return nil
+	}, retry.Delay(time.Second*5), retry.Attempts(3), retry.DelayType(retry.FixedDelay))
+	if err != nil && len(calendars.Items) == 0 {
+		log.Errorf("[handleChatCalendarMessage] err get event, item len: %d, err: %v,", len(calendars.Items), err)
+		return err
+	}
+	// 目前支取用第一个
+	event := calendars.Items[0]
+	err = p.BindCalendar(ctx, BindCalendarParam{
+		ProjectKey:      record.ProjectKey,
+		WorkItemTypeKey: record.WorkItemTypeKey,
+		WorkItemID:      record.WorkItemID,
+		CalendarEventID: util.GetPointerInfo(event.EventId),
+	}, userInfo.LarkUserAccessToken, meegoUserKey)
+	if err != nil {
+		log.Errorf("[handleChatCalendarMessage] bind err, err: %v", err)
+		return err
+	}
+	return nil
+}
+
 func (p PluginService) genACLMessage(meegoUserKey string) string {
 	redirectUrl := fmt.Sprintf("%s/api/v1/meego/lark/auth", config.GetAPPConfig().DomainURL)
 	stateUrl := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("https://project.feishu.cn?meego_user_key=%s", meegoUserKey)))
@@ -415,4 +533,25 @@ func (p PluginService) genACLMessage(meegoUserKey string) string {
 		stateUrl)
 	text := fmt.Sprintf(`您需要给当前应用授权, 才能正常使用「会议管理」插件相关功能，<b>点击链接进行应用授权</b>：[授权链接](%s)`, aclUrl)
 	return text
+}
+
+func (p PluginService) CreatePendingTask(ctx context.Context, meegoUserKey, taskType string, payload any, remark string) error {
+	log.Infof("user %s not authorized, creating pending task for %s", meegoUserKey, taskType)
+	payloadBytes, jsonErr := json.Marshal(payload)
+	if jsonErr != nil {
+		log.Errorf("Failed to marshal payload for pending task: %v", jsonErr)
+		return jsonErr
+	}
+	task := &model.PendingTask{
+		MeegoUserKey: meegoUserKey,
+		TaskType:     taskType,
+		Payload:      string(payloadBytes),
+		Status:       model.TaskStatusPending,
+		Remark:       remark,
+	}
+	if createErr := dal.PendingTask.Create(ctx, task); createErr != nil {
+		log.Errorf("Failed to create pending task: %v", createErr)
+		return createErr
+	}
+	return nil
 }

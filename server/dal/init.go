@@ -38,6 +38,10 @@ func InitDB() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+	err = b.AutoMigrate(&model.PendingTask{})
+	if err != nil {
+		panic(err)
+	}
 	err = b.AutoMigrate(&model.CalendarBind{})
 	if err != nil {
 		panic(err)

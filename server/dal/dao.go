@@ -5,4 +5,5 @@ var (
 	User            = NewUserDao()
 	VCMeetingUnBind = NewVCMeetingUnbindDao()
 	JoinChatRecord  = NewJoinChatRecordDao()
+	PendingTask     = NewPendingTaskDao()
 )

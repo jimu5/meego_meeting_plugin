@@ -110,14 +110,20 @@ func UseMeegoEventAutoBind(c *fiber.Ctx, body *WorkItemHandleEventBody) error {
 	}
 
 	// 判断当前变更的对象是否有群组
-	var hadGroup bool
+	var (
+		hadGroup bool
+		//hadGroupField bool
+	)
+
 	for _, f := range body.Data.FieldInfo {
 		if f.FieldKey == "chat_group" {
+			//hadGroupField = true
 			if f.AfterFieldValue != "" {
 				hadGroup = true
 			}
 		}
 	}
+
 	log.Infof("%s, workItemID: %d hadGroup: %v, field len: %d", fn, workItemID, hadGroup, len(body.Data.FieldInfo))
 	if !hadGroup {
 		log.Infof("%s, workItemID: %d not has group", fn, workItemID)

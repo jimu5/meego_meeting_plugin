@@ -22,7 +22,7 @@ func TestLarkService(t *testing.T) {
 
 	t.Run("GetMeetingRecordInfoByCalendar", func(t *testing.T) {
 		eventID := ""
-		res, err := larkService.GetMeetingRecordInfoByCalendar(ctx, "", eventID, userToken)
+		res, err := larkService.GetMeetingRecordInfoByCalendar(ctx, eventID, userToken)
 		fmt.Println(res, err)
 	})
 

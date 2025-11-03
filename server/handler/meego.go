@@ -1,16 +1,19 @@
 package handler
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/log"
 	"meego_meeting_plugin/dal"
 	"meego_meeting_plugin/model"
 	"meego_meeting_plugin/service"
 	"net/url"
+	"runtime/debug"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 )
 
 type MeegoLarkLoginParam struct {
@@ -93,6 +96,19 @@ func MeegoLarkLogin(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	// 异步触发这个用户的任务
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Errorf("Recovered in ProcessTasksByUser: %v, stack: %s", r, debug.Stack())
+			}
+		}()
+		ctx := context.Background()
+		err := service.Cron.ProcessTasksByUser(ctx, *userModelInfo)
+		if err != nil {
+			log.Error(err)
+		}
+	}()
 
 	return nil
 }
