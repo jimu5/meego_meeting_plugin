@@ -8,12 +8,16 @@
 
 **程序启动的必要参数如下**
 
-| 参数                | 说明                        |
-| ------------------- | --------------------------- |
-| lark_app_id         | 飞书应用凭证 app_id         |
-| lark_app_secret     | 飞书应用凭证 app_secret     |
-| meego_plugin_id     | 飞书项目插件凭证 app_id     |
-| meego_plugin_secret | 飞书项目插件凭证 app_secret |
+支持 `config.yaml`配置启动，可以将以下的参数配置放到 yaml 文件中。
+
+| 参数                       | 说明                           |
+| -------------------------- | ------------------------------ |
+| lark_app_id                | 飞书应用凭证 app_id            |
+| lark_app_secret            | 飞书应用凭证 app_secret        |
+| meego_plugin_id            | 飞书项目插件凭证 app_id        |
+| meego_plugin_secret        | 飞书项目插件凭证 app_secret    |
+| meego_event_callback_token | 飞书项目插件事件回调凭证 token |
+| domain_url                 | 后端插件服务部署的域名链接     |
 
 本章节提及到的所有 `yourhost.com` 都需要替换为你想要部署的域名地址
 
@@ -80,10 +84,15 @@
 
 #### 创建飞书项目插件
 
-创建过程详见 [飞书项目开发者中心](https://project.feishu.cn/b/helpcenter/1p8d7djs/359lzbgu)，创建好之后添加 **群组拉机器人权限**
-（group:group.bot:write）
-
-创建好之后, 记录下飞书项目插件的凭证信息
+1. 创建过程详见 [飞书项目开发者中心](https://project.feishu.cn/b/helpcenter/1p8d7djs/359lzbgu)，创建好之后添加权限：**群组拉机器人，获取工作项实例信息**
+   （group:group.bot:write）
+2. 增加事件监听功能：
+   插件后台管理-插件功能-插件构成处：
+   ![1762192750461](image/README/1762192750461.png)
+   配置好监听事件：
+   回调接口为 `https://yourhost.com/api/v1/meego/webhook/event`
+3. ![1762192846055](image/README/1762192846055.png)
+4. 创建好之后, 记录下飞书项目插件的凭证信息
 
 ![alt text](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/docs/img/server/5.png)
 
@@ -106,6 +115,8 @@ app_config:
   # Meego 开放平台配置
   meego_plugin_id: meego_plugin_id # 飞书项目插件凭证 app_id
   meego_plugin_secret: meego_plugin_secret # 飞书项目插件凭证 app_secret
+  meego_event_callback_token: meego_event_callback_token # 飞书项目插件事件回调凭证 token
+  domain_url: https://test.com # 后端插件服务部署的域名链接
 
 ```
 
@@ -129,12 +140,14 @@ TODO
 
 启动参数会优先于配置文件生效，启动参数说明
 
-| 参数                | 说明                        |
-| ------------------- | --------------------------- |
-| lark_app_id         | 飞书应用凭证 app_id         |
-| lark_app_secret     | 飞书应用凭证 app_secret     |
-| meego_plugin_id     | 飞书项目插件凭证 app_id     |
-| meego_plugin_secret | 飞书项目插件凭证 app_secret |
+| 参数                       | 说明                           |
+| -------------------------- | ------------------------------ |
+| lark_app_id                | 飞书应用凭证 app_id            |
+| lark_app_secret            | 飞书应用凭证 app_secret        |
+| meego_plugin_id            | 飞书项目插件凭证 app_id        |
+| meego_plugin_secret        | 飞书项目插件凭证 app_secret    |
+| meego_event_callback_token | 飞书项目插件事件回调凭证 token |
+| domain_url                 | 后端插件服务部署的域名链接     |
 
 3. 执行命令之后，如果没有意外的话，后端服务将运行在 7999 端口上
 
@@ -176,7 +189,7 @@ TODO
 
 **技术优化**
 
-1. 使用上支持配置文件方式启动
-2. 支持多种 DB 源作为存储
-3. 监听飞书回调事件优化
-4. ...
+1. [X] 使用上支持配置文件方式启动
+2. [X] 支持多种 DB 源作为存储
+3. [X] 监听飞书回调事件优化
+4. [ ] ...

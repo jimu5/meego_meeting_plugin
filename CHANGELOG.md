@@ -1,5 +1,17 @@
 # 变更记录（CHANGELOG)
 
+## 0.1.4(2025-11-04)
+
+### Feature
+
+- 自动激活会议管理功能优化 - 监听工作项创建和变更事件，自动拉机器人并激活会管理功能
+- 当无权限时，推送消息到对应的用户，引导给应用授权
+- 当执行授权时，会自动执行之前因为授权被卡主未执行的任务
+
+视频演示如下：
+
+[视频链接](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/image/CHANGELOG/1104show.mp4)
+
 ## 0.1.3(2025-05-07)
 
 ### Feature
