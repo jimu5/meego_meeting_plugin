@@ -8,6 +8,7 @@ import (
 	"meego_meeting_plugin/config"
 	"meego_meeting_plugin/dal"
 	"meego_meeting_plugin/service"
+	"meego_meeting_plugin/service/meego_api"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
@@ -111,14 +112,33 @@ func UseMeegoEventAutoBind(c *fiber.Ctx, body *WorkItemHandleEventBody) error {
 
 	// 判断当前变更的对象是否有群组
 	var (
-		hadGroup bool
-		//hadGroupField bool
+		hadGroup      bool
+		hadGroupField bool
 	)
 
 	for _, f := range body.Data.FieldInfo {
-		if f.FieldKey == "chat_group" {
-			//hadGroupField = true
+		if f.FieldKey == ChatGroupFieldKey {
+			hadGroupField = true
 			if f.AfterFieldValue != "" {
+				hadGroup = true
+			}
+		}
+	}
+	if !hadGroupField {
+		// 查询最新的数据
+		workItemInfos, err := meego_api.API.WorkItem.GetWorkItem(c.Context(), meegoUserKey, projectKey, workItemTypeKey,
+			[]int64{workItemID}, []string{ChatGroupFieldKey})
+		if err != nil {
+			log.Errorf("%s, err: %v", fn, err)
+			return err
+		}
+		if len(workItemInfos) == 0 {
+			log.Errorf("%s, workItemID: %d not found", fn, workItemID)
+			return nil
+		}
+		workItemInfo := workItemInfos[0]
+		for _, f := range workItemInfo.Fields {
+			if f.FieldKey == ChatGroupFieldKey && f.FieldValue != "" {
 				hadGroup = true
 			}
 		}
