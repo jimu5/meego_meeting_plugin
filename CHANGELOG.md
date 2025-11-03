@@ -10,7 +10,8 @@
 
 视频演示如下：
 
-[视频链接](https://raw.githubusercontent.com/jimu5/meego_meeting_plugin/main/image/CHANGELOG/1104show.mp4)
+https://github.com/user-attachments/assets/909a9d92-dede-4680-891e-30e73959a147
+
 
 ## 0.1.3(2025-05-07)
 
