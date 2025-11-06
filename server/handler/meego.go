@@ -5,12 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"meego_meeting_plugin/dal"
-	"meego_meeting_plugin/model"
-	"meego_meeting_plugin/service"
 	"net/url"
 	"runtime/debug"
 	"time"
+
+	"meego_meeting_plugin/dal"
+	"meego_meeting_plugin/model"
+	"meego_meeting_plugin/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
@@ -57,9 +58,13 @@ func MeegoLarkLogin(c *fiber.Ctx) error {
 	// 从 stateURL 中解析出 userKey
 	meegoUserKey := stateURL.Query().Get(MeegoUserKey)
 	if len(meegoUserKey) == 0 {
-		fmt.Println(stateURL.Query(), meegoUserKey)
-		log.Errorf("[MeegoLarkLogin] parse empty meego user key")
-		return ErrInvalidParam
+		log.Infof("meegoUserKey: %s", meegoUserKey)
+		meegoUserKey = stateURL.Query().Get("meego-user-key")
+		if len(meegoUserKey) == 0 {
+			fmt.Println(stateURL.Query(), meegoUserKey)
+			log.Errorf("[MeegoLarkLogin] parse empty meego user key")
+			return ErrInvalidParam
+		}
 	}
 	userTokenInfo, err := service.Lark.GetUserAccessToken(c.Context(), param.Code)
 	if err != nil {
